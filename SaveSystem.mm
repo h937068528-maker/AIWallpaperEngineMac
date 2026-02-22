@@ -70,6 +70,9 @@ void SaveSystem::Save(const std::list<Display> &displays) {
     root["displays"].push_back(d);
 
   std::ofstream out(configPath(), std::ios::trunc);
+  if (!out) {
+    return;
+  }
   out << root;
 }
 

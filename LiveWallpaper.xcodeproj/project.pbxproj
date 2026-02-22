@@ -21,7 +21,6 @@
 		04E0570B2EEAB3EE00F90A44 /* WallpaperEngine.mm in Sources */ = {isa = PBXBuildFile; fileRef = 04E056F02EEAB3EE00F90A44 /* WallpaperEngine.mm */; };
 		04E057192EEAB3EE00F90A44 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E0565F2EEAB3EE00F90A44 /* ContentView.swift */; };
 		04E0571C2EEAB3EE00F90A44 /* SaveSystem.mm in Sources */ = {isa = PBXBuildFile; fileRef = 04E0566C2EEAB3EE00F90A44 /* SaveSystem.mm */; };
-		04E057252EEAB3EE00F90A44 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 04E0565C2EEAB3EE00F90A44 /* AppIcon.icon */; };
 		04E057382EEAB3EE00F90A44 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 04E0565D2EEAB3EE00F90A44 /* Assets.xcassets */; };
 		04E057742EEAB43200F90A44 /* emitterstate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04E0574A2EEAB43200F90A44 /* emitterstate.cpp */; };
 		04E057752EEAB43200F90A44 /* nodebuilder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04E057562EEAB43200F90A44 /* nodebuilder.cpp */; };
@@ -55,8 +54,6 @@
 		04E057912EEAB43200F90A44 /* null.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04E057592EEAB43200F90A44 /* null.cpp */; };
 		04E057922EEAB43200F90A44 /* scanner.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04E057622EEAB43200F90A44 /* scanner.cpp */; };
 		04E057932EEAB43200F90A44 /* directives.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04E057452EEAB43200F90A44 /* directives.cpp */; };
-		04E057942EEAB43200F90A44 /* yaml-cpp.natvis.md in Resources */ = {isa = PBXBuildFile; fileRef = 04E0573E2EEAB43200F90A44 /* yaml-cpp.natvis.md */; };
-		04E057952EEAB43200F90A44 /* yaml-cpp.natvis in Resources */ = {isa = PBXBuildFile; fileRef = 04E0573D2EEAB43200F90A44 /* yaml-cpp.natvis */; };
 		04F816E02EEBE3FB00CFB473 /* DisplayObjc.mm in Sources */ = {isa = PBXBuildFile; fileRef = 04F816DF2EEBE3FB00CFB473 /* DisplayObjc.mm */; };
 /* End PBXBuildFile section */
 
@@ -89,7 +86,6 @@
 		04E055E02EEA8C2E00F90A44 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 		04E055E22EEA8CB600F90A44 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		04E055E82EEA8D2C00F90A44 /* wallpaperdaemon */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = wallpaperdaemon; sourceTree = BUILT_PRODUCTS_DIR; };
-		04E0565C2EEAB3EE00F90A44 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = SOURCE_ROOT; };
 		04E0565D2EEAB3EE00F90A44 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = SOURCE_ROOT; };
 		04E0565F2EEAB3EE00F90A44 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = SOURCE_ROOT; };
 		04E056612EEAB3EE00F90A44 /* DisplayManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DisplayManager.h; sourceTree = SOURCE_ROOT; };
@@ -103,8 +99,6 @@
 		04E0573A2EEAB43200F90A44 /* graphbuilder.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = graphbuilder.cpp; sourceTree = "<group>"; };
 		04E0573B2EEAB43200F90A44 /* graphbuilderadapter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = graphbuilderadapter.h; sourceTree = "<group>"; };
 		04E0573C2EEAB43200F90A44 /* graphbuilderadapter.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = graphbuilderadapter.cpp; sourceTree = "<group>"; };
-		04E0573D2EEAB43200F90A44 /* yaml-cpp.natvis */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "yaml-cpp.natvis"; sourceTree = "<group>"; };
-		04E0573E2EEAB43200F90A44 /* yaml-cpp.natvis.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "yaml-cpp.natvis.md"; sourceTree = "<group>"; };
 		04E057402EEAB43200F90A44 /* binary.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = binary.cpp; sourceTree = "<group>"; };
 		04E057412EEAB43200F90A44 /* collectionstack.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = collectionstack.h; sourceTree = "<group>"; };
 		04E057422EEAB43200F90A44 /* convert.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = convert.cpp; sourceTree = "<group>"; };
@@ -205,8 +199,6 @@
 		04E0584B2EEAB54E00F90A44 /* graphbuilder.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = graphbuilder.cpp; sourceTree = "<group>"; };
 		04E0584C2EEAB54E00F90A44 /* graphbuilderadapter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = graphbuilderadapter.h; sourceTree = "<group>"; };
 		04E0584D2EEAB54E00F90A44 /* graphbuilderadapter.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = graphbuilderadapter.cpp; sourceTree = "<group>"; };
-		04E0584E2EEAB54E00F90A44 /* yaml-cpp.natvis */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "yaml-cpp.natvis"; sourceTree = "<group>"; };
-		04E0584F2EEAB54E00F90A44 /* yaml-cpp.natvis.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "yaml-cpp.natvis.md"; sourceTree = "<group>"; };
 		04E058512EEAB54E00F90A44 /* binary.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = binary.cpp; sourceTree = "<group>"; };
 		04E058522EEAB54E00F90A44 /* collectionstack.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = collectionstack.h; sourceTree = "<group>"; };
 		04E058532EEAB54E00F90A44 /* convert.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = convert.cpp; sourceTree = "<group>"; };
@@ -347,7 +339,6 @@
 		04E0565B2EEAB3DD00F90A44 /* LiveWallpaper */ = {
 			isa = PBXGroup;
 			children = (
-				04E0565C2EEAB3EE00F90A44 /* AppIcon.icon */,
 				04E0565D2EEAB3EE00F90A44 /* Assets.xcassets */,
 				04E0565F2EEAB3EE00F90A44 /* ContentView.swift */,
 				04E056612EEAB3EE00F90A44 /* DisplayManager.h */,
@@ -371,8 +362,6 @@
 				04E0573A2EEAB43200F90A44 /* graphbuilder.cpp */,
 				04E0573B2EEAB43200F90A44 /* graphbuilderadapter.h */,
 				04E0573C2EEAB43200F90A44 /* graphbuilderadapter.cpp */,
-				04E0573D2EEAB43200F90A44 /* yaml-cpp.natvis */,
-				04E0573E2EEAB43200F90A44 /* yaml-cpp.natvis.md */,
 			);
 			path = contrib;
 			sourceTree = "<group>";
@@ -535,8 +524,6 @@
 				04E0584B2EEAB54E00F90A44 /* graphbuilder.cpp */,
 				04E0584C2EEAB54E00F90A44 /* graphbuilderadapter.h */,
 				04E0584D2EEAB54E00F90A44 /* graphbuilderadapter.cpp */,
-				04E0584E2EEAB54E00F90A44 /* yaml-cpp.natvis */,
-				04E0584F2EEAB54E00F90A44 /* yaml-cpp.natvis.md */,
 			);
 			path = contrib;
 			sourceTree = "<group>";
@@ -715,9 +702,6 @@
 		04E007082EEA738C00F90A44 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
-				04E057252EEAB3EE00F90A44 /* AppIcon.icon in Resources */,
-				04E057942EEAB43200F90A44 /* yaml-cpp.natvis.md in Resources */,
-				04E057952EEAB43200F90A44 /* yaml-cpp.natvis in Resources */,
 				04E057382EEAB3EE00F90A44 /* Assets.xcassets in Resources */,
 			);
 		};

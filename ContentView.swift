@@ -22,7 +22,89 @@ import UniformTypeIdentifiers
 import Combine
 import AppKit
 
+// MARK: - String Localization Extension
+extension String {
+    var localized: String {
+        return NSLocalizedString(self, comment: "")
+    }
+}
 
+// MARK: - Language Manager
+class LanguageManager: ObservableObject {
+    static let shared = LanguageManager()
+
+    @Published var currentLanguage: String {
+        didSet {
+            UserDefaults.standard.set(currentLanguage, forKey: UserDefaultsKeys.appLanguage)
+            UserDefaults.standard.set([currentLanguage], forKey: "AppleLanguages")
+            UserDefaults.standard.synchronize()
+        }
+    }
+
+    var availableLanguages: [(code: String, name: String)] {
+        [
+            ("auto", "system_language".localized),
+            ("zh-Hans", "简体中文"),
+            ("en", "English")
+        ]
+    }
+
+    private init() {
+        let saved = UserDefaults.standard.string(forKey: UserDefaultsKeys.appLanguage) ?? "auto"
+        self.currentLanguage = saved
+    }
+
+    func localizedString(_ key: String) -> String {
+        let language = currentLanguage == "auto" ? Locale.preferredLanguages.first ?? "en" : currentLanguage
+        guard let path = Bundle.main.path(forResource: language, ofType: "lproj") ??
+                         Bundle.main.path(forResource: language.components(separatedBy: "-").first, ofType: "lproj"),
+              let bundle = Bundle(path: path) else {
+            return NSLocalizedString(key, comment: "")
+        }
+        return NSLocalizedString(key, tableName: nil, bundle: bundle, comment: "")
+    }
+}
+
+// MARK: - Localization
+enum L {
+    static let selectWallpaperFolder = NSLocalizedString("select_wallpaper_folder", comment: "")
+    static let generating = NSLocalizedString("generating", comment: "")
+    static let settings = NSLocalizedString("settings", comment: "")
+    static let wallpaperFolder = NSLocalizedString("wallpaper_folder", comment: "")
+    static let selectFolderEmoji = NSLocalizedString("select_folder_emoji", comment: "")
+    static let showInFinder = NSLocalizedString("show_in_finder", comment: "")
+    static let videoScalingMode = NSLocalizedString("video_scaling_mode", comment: "")
+    static let scaleFill = NSLocalizedString("scale_fill", comment: "")
+    static let scaleFit = NSLocalizedString("scale_fit", comment: "")
+    static let scaleStretch = NSLocalizedString("scale_stretch", comment: "")
+    static let scaleCenter = NSLocalizedString("scale_center", comment: "")
+    static let scaleHeightFill = NSLocalizedString("scale_height_fill", comment: "")
+    static let randomOnStartup = NSLocalizedString("random_on_startup", comment: "")
+    static let randomOnLid = NSLocalizedString("random_on_lid", comment: "")
+    static let pauseWhenActive = NSLocalizedString("pause_when_active", comment: "")
+    static let videoVolume = NSLocalizedString("video_volume", comment: "")
+    static let optimizeCodecs = NSLocalizedString("optimize_codecs", comment: "")
+    static let optimize = NSLocalizedString("optimize", comment: "")
+    static let clearCache = NSLocalizedString("clear_cache", comment: "")
+    static let clearCacheButton = NSLocalizedString("clear_cache_button", comment: "")
+    static let resetUserData = NSLocalizedString("reset_userdata", comment: "")
+    static let reset = NSLocalizedString("reset", comment: "")
+    static let selectFolderTitle = NSLocalizedString("select_folder_title", comment: "")
+    static let choose = NSLocalizedString("choose", comment: "")
+    static let selectFolderOrType = NSLocalizedString("select_folder_or_type", comment: "")
+}
+
+// MARK: - UserDefaults Keys
+enum UserDefaultsKeys {
+    static let wallpaperFolder = "WallpaperFolder"
+    static let scaleMode = "scale_mode"
+    static let randomOnStartup = "random"
+    static let randomOnLid = "random_lid"
+    static let pauseOnAppFocus = "pauseOnAppFocus"
+    static let volumePercentage = "wallpapervolumeprecentage"
+    static let launchAtLogin = "LaunchAtLogin"
+    static let appLanguage = "app_language"
+}
 
 // MARK: - Main Content View
 struct ContentView: View {
@@ -32,29 +114,10 @@ struct ContentView: View {
     
     
     @Environment(\.dismiss) private var dismiss
-        static var didCloseOnLaunch = false
-
+    static var didCloseOnLaunch = false
 
     var body: some View {
         VStack(spacing: 0) {
-//            HStack {
-//                            Image(systemName: "play.circle")
-//                            Text("LiveWallpaper Settings")
-//                                .font(.headline)
-//                            Spacer()
-//                            Button(action: {
-//                                NSApp.mainWindow?.orderOut(nil)
-//                            }) {
-//                                Image(systemName: "xmark.circle.fill")
-//                            }
-//                            .buttonStyle(BorderlessButtonStyle())
-//                            .glassEffect(.clear.tint(.red))
-//                            .font(Font.system(size: 15, weight: .bold, design: .default))
-//                        }
-//                        .padding()
-//                        .glassEffect(.regular, in: .rect(cornerRadius: 1))
-//                        
-//                        Divider()
             Spacer(minLength: 20)
             
             // Top toolbar
@@ -100,10 +163,10 @@ struct ContentView: View {
             viewModel.loadDisplays()
             viewModel.reloadContent()
             
-            if (!Self.didCloseOnLaunch && !(sharedEngine?.isFirstLaunch())!) {
-                                Self.didCloseOnLaunch = true
-                                dismiss()
-                            }
+            if !Self.didCloseOnLaunch, let engine = sharedEngine, !engine.isFirstLaunch() {
+                Self.didCloseOnLaunch = true
+                dismiss()
+            }
             
             
         }
@@ -153,17 +216,17 @@ struct VideoGridView: View {
                     panel.canChooseFiles = false
                     panel.canChooseDirectories = true
                     panel.allowsMultipleSelection = false
-                    panel.title = "Select Wallpaper Folder"
-                    panel.prompt = "Choose"
+                    panel.title = L.selectFolderTitle
+                    panel.prompt = L.choose
                     
                     if panel.runModal() == .OK, let url = panel.url {
                         viewModel.folderPath = url.path
-                        sharedEngine?.selctFolder(url.path())
+                        sharedEngine?.selectFolder(url.path())
                         viewModel.reloadContent()
                     }
                     
                 } label: {
-                    Text("Select a wallpaper folder")
+                    Text(L.selectWallpaperFolder)
                         .font(.system(size: 14, weight: .medium))
                         .padding(.horizontal, 20)
                         .padding(.vertical, 10)
@@ -215,7 +278,7 @@ struct VideoThumbnailButton: View {
                             VStack(spacing: 4) {
                                 ProgressView()
                                     .scaleEffect(0.7)
-                                Text("Generating...")
+                                Text(L.generating)
                                     .font(.caption2)
                                     .foregroundColor(.secondary)
                             }
@@ -270,15 +333,11 @@ class DisplayManager: ObservableObject {
     }
 
     func updateDisplays() {
-        
         sharedEngine?.scanDisplays()
-        
+
         DispatchQueue.main.async { [weak self] in
-                    self?.displays = sharedEngine?.getDisplays() as? [DisplayObjc] ?? []
-                }
-        
-        
-        
+            self?.displays = sharedEngine?.getDisplays() as? [DisplayObjc] ?? []
+        }
     }
 }
 
@@ -292,9 +351,7 @@ private func displayReconfigCallback(
     DispatchQueue.main.async {
         manager.updateDisplays()
         manager.selectedDisplays.removeAll()
-        
     }
-    
 }
 
 
@@ -399,18 +456,18 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: 16) {
             // Header
             HStack {
-                Text("Settings")
+                Text(L.settings)
                     .font(.title2)
                     .fontWeight(.bold)
                 Spacer()
                 Button(action: {
-                                                dismiss()
-                                            }) {
-                                                Image(systemName: "xmark.circle.fill")
-                                            }
-                                            .buttonStyle(BorderlessButtonStyle())
-                                            .glassEffect(.clear.tint(.red))
-                                                                       .font(Font.system(size: 16, weight: .bold, design: .default))
+                    dismiss()
+                }) {
+                    Image(systemName: "xmark.circle.fill")
+                }
+                .buttonStyle(BorderlessButtonStyle())
+                .glassEffect(.clear.tint(.red))
+                .font(Font.system(size: 16, weight: .bold, design: .default))
                 
             }
             
@@ -419,17 +476,17 @@ struct SettingsView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing:20) {
                     // Folder Selection
-                    SettingRow(title: "Wallpaper Folder") {
+                    SettingRow(title: L.wallpaperFolder) {
                         HStack {
-                            TextField("Select folder or type path", text: $viewModel.folderPath)
+                            TextField(L.selectFolderOrType, text: $viewModel.folderPath)
                                 .textFieldStyle(.roundedBorder)
                                 .frame(width: 200)
                             
-                            Button("Select Folder 📁") {
+                            Button(L.selectFolderEmoji) {
                                 selectFolder()
                             }
                             
-                            Button("Show in Finder 🗂") {
+                            Button(L.showInFinder) {
                                 openInFinder()
                             }
                         }
@@ -438,10 +495,10 @@ struct SettingsView: View {
                     Divider()
                     
                     //Scale mode
-                    SettingRow(title: "Video Scaling Mode") {
+                    SettingRow(title: L.videoScalingMode) {
                         Picker("", selection: Binding(
                             get: {
-                                let mode = UserDefaults.standard.integer(forKey: "scale_mode")
+                                let mode = UserDefaults.standard.integer(forKey: UserDefaultsKeys.scaleMode)
                                 switch mode {
                                 case 0: return "fill"
                                 case 1: return "fit"
@@ -461,26 +518,51 @@ struct SettingsView: View {
                                 case "height-fill": intValue = 4
                                 default: intValue = 0
                                 }
-                                UserDefaults.standard.set(intValue, forKey: "scale_mode")
+                                UserDefaults.standard.set(intValue, forKey: UserDefaultsKeys.scaleMode)
                             }
                         )) {
-                            Text("Fill").tag("fill")
-                            Text("Fit").tag("fit")
-                            Text("Stretch").tag("stretch")
-                            Text("Center").tag("center")
-                            Text("HeightFill").tag("height-fill")
+                            Text(L.scaleFill).tag("fill")
+                            Text(L.scaleFit).tag("fit")
+                            Text(L.scaleStretch).tag("stretch")
+                            Text(L.scaleCenter).tag("center")
+                            Text(L.scaleHeightFill).tag("height-fill")
                         }
                         .pickerStyle(.menu)
                         .frame(width: 150)
                     }
                     
                     Divider()
-                    
+
+                    // Language Selection
+                    SettingRow(title: NSLocalizedString("app_language", comment: "")) {
+                        Picker("", selection: Binding(
+                            get: { LanguageManager.shared.currentLanguage },
+                            set: { newValue in
+                                LanguageManager.shared.currentLanguage = newValue
+                                // 重启应用生效
+                                let alert = NSAlert()
+                                alert.messageText = NSLocalizedString("language_changed_title", comment: "")
+                                alert.informativeText = NSLocalizedString("language_changed_message", comment: "")
+                                alert.alertStyle = .informational
+                                alert.addButton(withTitle: NSLocalizedString("ok", comment: ""))
+                                alert.runModal()
+                            }
+                        )) {
+                            Text(NSLocalizedString("system_language", comment: "")).tag("auto")
+                            Text("简体中文").tag("zh-Hans")
+                            Text("English").tag("en")
+                        }
+                        .pickerStyle(.menu)
+                        .frame(width: 150)
+                    }
+
+                    Divider()
+
                     // Random Wallpaper on Startup
-                    SettingRow(title: "Random Wallpaper on Startup") {
+                    SettingRow(title: L.randomOnStartup) {
                         Toggle("", isOn: Binding(
-                                get: { UserDefaults.standard.bool(forKey: "random") },
-                                set: { UserDefaults.standard.set($0, forKey: "random") }
+                                get: { UserDefaults.standard.bool(forKey: UserDefaultsKeys.randomOnStartup) },
+                                set: { UserDefaults.standard.set($0, forKey: UserDefaultsKeys.randomOnStartup) }
                             ))
                             .toggleStyle(.switch)
 
@@ -488,10 +570,10 @@ struct SettingsView: View {
                     }
                     
                     // Random Wallpaper on Weakup
-                    SettingRow(title: "Random Wallpaper on Lid Weakup (Required Application Restart)") {
+                    SettingRow(title: L.randomOnLid) {
                         Toggle("", isOn: Binding(
-                                get: { UserDefaults.standard.bool(forKey: "random_lid") },
-                                set: { UserDefaults.standard.set($0, forKey: "random_lid") }
+                                get: { UserDefaults.standard.bool(forKey: UserDefaultsKeys.randomOnLid) },
+                                set: { UserDefaults.standard.set($0, forKey: UserDefaultsKeys.randomOnLid) }
                             ))
                             .toggleStyle(.switch)
 
@@ -499,10 +581,10 @@ struct SettingsView: View {
                     }
                     
                     // Auto-Pause When App is Active
-                    SettingRow(title: "Pause When App is Active") {
+                    SettingRow(title: L.pauseWhenActive) {
                         Toggle("", isOn: Binding(
-                                get: { UserDefaults.standard.bool(forKey: "pauseOnAppFocus") },
-                                set: { UserDefaults.standard.set($0, forKey: "pauseOnAppFocus") }
+                                get: { UserDefaults.standard.bool(forKey: UserDefaultsKeys.pauseOnAppFocus) },
+                                set: { UserDefaults.standard.set($0, forKey: UserDefaultsKeys.pauseOnAppFocus) }
                             ))
                             .toggleStyle(.switch)
                     }
@@ -510,7 +592,7 @@ struct SettingsView: View {
                     Divider()
                     
                     // Video Volume
-                    SettingRow(title: "Video Volume") {
+                    SettingRow(title: L.videoVolume) {
                         HStack {
                             Slider(value: $viewModel.volume, in: 0...100, step: 1)
                                 .frame(width: 200)
@@ -528,23 +610,23 @@ struct SettingsView: View {
                     Divider()
                     
                     // Optimize Videos
-                    SettingRow(title: "Optimize Video Codecs") {
-                        Button("Optimize 🛠️") {
+                    SettingRow(title: L.optimizeCodecs) {
+                        Button(L.optimize) {
                             viewModel.optimizeVideos()
                         }
                         .disabled(true) // Match original
                     }
                     
                     // Clear Cache
-                    SettingRow(title: "Clear Cache") {
-                        Button("Clear Cache 🗑️") {
+                    SettingRow(title: L.clearCache) {
+                        Button(L.clearCacheButton) {
                             viewModel.clearCache()
                         }
                     }
                     
                     // Reset User Data
-                    SettingRow(title: "Reset UserData") {
-                        Button("Reset") {
+                    SettingRow(title: L.resetUserData) {
+                        Button(L.reset) {
                             viewModel.resetUserData()
                         }
                     }
@@ -563,12 +645,12 @@ struct SettingsView: View {
         panel.canChooseFiles = false
         panel.canChooseDirectories = true
         panel.allowsMultipleSelection = false
-        panel.title = "Select Wallpaper Folder"
-        panel.prompt = "Choose"
+        panel.title = L.selectFolderTitle
+        panel.prompt = L.choose
         
         if panel.runModal() == .OK, let url = panel.url {
             viewModel.folderPath = url.path
-            sharedEngine?.selctFolder(url.path())
+            sharedEngine?.selectFolder(url.path())
             viewModel.reloadContent()
         }
     }
@@ -682,6 +764,7 @@ class WallpaperViewModel: ObservableObject {
     @Published var pauseOnAppFocus: Bool = true
     @Published var volume: Double = 50.0
     private var currentReloadID = UUID()
+    private let reloadIDLock = NSLock()
 
     private let defaults = UserDefaults.standard
     let engine: WallpaperEngine
@@ -698,10 +781,10 @@ class WallpaperViewModel: ObservableObject {
 
     func loadSettings() {
         folderPath = engine.getFolderPath()
-        scaleMode = defaults.string(forKey: "scale_mode") ?? "fill"
-        randomOnStartup = defaults.bool(forKey: "random")
-        pauseOnAppFocus = defaults.bool(forKey: "pauseOnAppFocus")
-        volume = Double(defaults.float(forKey: "wallpapervolumeprecentage"))
+        scaleMode = defaults.string(forKey: UserDefaultsKeys.scaleMode) ?? "fill"
+        randomOnStartup = defaults.bool(forKey: UserDefaultsKeys.randomOnStartup)
+        pauseOnAppFocus = defaults.bool(forKey: UserDefaultsKeys.pauseOnAppFocus)
+        volume = Double(defaults.float(forKey: UserDefaultsKeys.volumePercentage))
     }
     
     func reloadContent() {
@@ -718,25 +801,35 @@ class WallpaperViewModel: ObservableObject {
         }
 
         let reloadID = UUID()
+        reloadIDLock.lock()
         currentReloadID = reloadID
+        reloadIDLock.unlock()
 
-        DispatchQueue.global(qos: .userInitiated).async {
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
+
             let newVideos: [VideoItem] = videoFiles.map { f in
                 let full = (self.folderPath as NSString).appendingPathComponent(f)
                 let base = (f as NSString).deletingPathExtension
                 let thumbPath = (self.engine.thumbnailCachePath() as NSString?)?.appendingPathComponent("\(base).png") ?? ""
-                
+
                 var item = VideoItem(filename: f, path: full, thumbnailPath: thumbPath)
-                
+
 //                item.quality = self.engine.videoQualityBadge(for: URL(fileURLWithPath: full))
                 self.engine.videoQualityBadge(for: URL(fileURLWithPath: full)){badge in item.quality = badge}
                 return item
             }
 
-            DispatchQueue.main.async {
-                if reloadID == self.currentReloadID {
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+
+                self.reloadIDLock.lock()
+                let isValid = reloadID == self.currentReloadID
+                self.reloadIDLock.unlock()
+
+                if isValid {
                     self.videos = newVideos
-                    
+
                     // Check if any thumbnails are missing and generate once
                     let missingThumbnails = newVideos.filter { $0.loadThumbnail() == nil }
                     if !missingThumbnails.isEmpty {
@@ -749,7 +842,7 @@ class WallpaperViewModel: ObservableObject {
     }
 
     func loadDisplays() {
-        displays = sharedEngine?.getDisplays() as! [DisplayObjc]
+        displays = sharedEngine?.getDisplays() as? [DisplayObjc] ?? []
     }
 
     func startWallpaper(video: VideoItem, displays: [UInt32]) {

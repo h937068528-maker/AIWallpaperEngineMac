@@ -53,10 +53,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         
         let menu = NSMenu()
-        menu.addItem(NSMenuItem(title: "Show Window", action: #selector(showWindow), keyEquivalent: "s"))
-        menu.addItem(NSMenuItem(title: "Hide Window", action: #selector(hideWindow), keyEquivalent: "h"))
+        menu.addItem(NSMenuItem(title: NSLocalizedString("show_window", comment: ""), action: #selector(showWindow), keyEquivalent: "s"))
+        menu.addItem(NSMenuItem(title: NSLocalizedString("hide_window", comment: ""), action: #selector(hideWindow), keyEquivalent: "h"))
         menu.addItem(NSMenuItem.separator())
-        menu.addItem(NSMenuItem(title: "Quit", action: #selector(quit), keyEquivalent: "q"))
+        menu.addItem(NSMenuItem(title: NSLocalizedString("quit", comment: ""), action: #selector(quit), keyEquivalent: "q"))
         statusItem.menu = menu
 
         // Create main window with ContentView
@@ -74,7 +74,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         window.center()
         window.contentView = NSHostingView(rootView: ContentView())
-        window.title = "LiveWallpaper By Bios"
+        window.title = "LiveWallpaper"
         window.isReleasedWhenClosed = false
         window.makeKeyAndOrderFront(nil)
         
@@ -128,15 +128,15 @@ func requestAccessibilityAccess() {
 
 
 func isLoginItemEnabled() -> Bool {
-    return UserDefaults.standard.bool(forKey: "LaunchAtLogin")
+    return UserDefaults.standard.bool(forKey: UserDefaultsKeys.launchAtLogin)
 }
 
 
 func setLoginItem(enabled: Bool) {
     guard let bundleId = Bundle.main.bundleIdentifier else { return }
-    
+
     if SMLoginItemSetEnabled(bundleId as CFString, enabled) {
-        UserDefaults.standard.set(enabled, forKey: "LaunchAtLogin")
+        UserDefaults.standard.set(enabled, forKey: UserDefaultsKeys.launchAtLogin)
     } else {
         print("❌ Failed to update login items")
     }

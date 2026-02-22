@@ -31,6 +31,8 @@
 #include <cstdlib>
 #include <float.h>
 
+#include "../DisplayManager.h"
+
 @interface VideoWallpaperDaemon : NSObject
 @property(strong) NSMutableArray<NSWindow *> *windows;
 @property(strong) NSMutableArray<AVQueuePlayer *> *players;
@@ -852,19 +854,12 @@ static void terminateWallpaperDaemonCallback(CFNotificationCenterRef center,
     NSError *error = nil;
 
     {
-      NSNumber *screenNumber =
-          _targetScreen.deviceDescription[@"NSScreenNumber"];
-      CGDirectDisplayID did =
-          (CGDirectDisplayID)[screenNumber unsignedIntValue];
+      // Get display UUID using modern API (replaces deprecated CGDisplayIOServicePort)
+      std::string uuidString = DisplayUUIDFromID(
+          (CGDirectDisplayID)[_targetScreen.deviceDescription[@"NSScreenNumber"] unsignedIntValue]);
 
-      // Get display info from IOKit (public API)
-      CFDictionaryRef displayInfo = IODisplayCreateInfoDictionary(
-          CGDisplayIOServicePort(did), kIOReturnSuccess);
-
-      if (displayInfo) {
-        NSDictionary *info = (__bridge NSDictionary *)displayInfo;
-
-        NSString *uuid = info[@"DisplayUUID"];
+      if (!uuidString.empty()) {
+        NSString *uuid = [NSString stringWithUTF8String:uuidString.c_str()];
         if (uuid) {
           // Build the desktop dictionary that macOS uses internally
           NSMutableDictionary *desktopSpec = [NSMutableDictionary dictionary];
@@ -884,8 +879,6 @@ static void terminateWallpaperDaemonCallback(CFNotificationCenterRef center,
                                    CFSTR("com.apple.desktop"));
           CFPreferencesAppSynchronize(CFSTR("com.apple.desktop"));
         }
-
-        CFRelease(displayInfo);
       }
     }
 

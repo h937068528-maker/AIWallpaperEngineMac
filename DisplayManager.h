@@ -152,9 +152,8 @@ inline bool KillProcessByPID(pid_t pid) {
 
   for (int i = 0; i < 15; i++) {
     if (kill(pid, 0) != 0 && errno == ESRCH) {
-
-      return true;
       std::printf("Process killed: %d\n", pid);
+      return true;
     }
     usleep(10000);
   }
