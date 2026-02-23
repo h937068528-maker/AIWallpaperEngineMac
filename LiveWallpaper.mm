@@ -82,24 +82,6 @@ namespace fs = std::filesystem;
 
 bool reload = true;
 
-std::string run_command(const std::string &cmd) {
-  std::array<char, 128> buffer;
-  std::string result;
-
-  FILE *pipe = popen(cmd.c_str(), "r");
-  if (!pipe)
-    throw std::runtime_error("popen() failed!");
-  while (fgets(buffer.data(), buffer.size(), pipe) != nullptr) {
-    result += buffer.data();
-  }
-  pclose(pipe);
-
-  if (!result.empty() && result.back() == '\n') {
-    result.pop_back();
-  }
-
-  return result;
-}
 
 // bool set_wallpaper_all_spaces(const std::string &imagePath) {
 //   // std::string cmd = "automator -i \"" + imagePath + "\"
@@ -243,14 +225,13 @@ NSString *getFolderPath(void) {
         }
 
         NSArray *videosCopy = [[NSArray alloc] initWithArray:videoFiles];
-        NSString *cacheDir = [strongSelf staticWallpaperChachePath];
+        NSString *cacheDir = [strongSelf staticWallpaperCachePath];
 
         __block NSUInteger index = 0;
 
         void (^processNext)(void) = ^{
           if (index >= [displaysCopy count]) {
             NSLog(@"All displays randomized");
-            [videosCopy release];
             return;
           }
 
@@ -402,7 +383,7 @@ NSString *getFolderPath(void) {
   return thumbnailPath;
 }
 
-- (NSString *)staticWallpaperChachePath {
+- (NSString *)staticWallpaperCachePath {
   NSArray *cacheDirs = NSSearchPathForDirectoriesInDomains(
       NSCachesDirectory, NSUserDomainMask, YES);
   NSString *systemCacheDir = cacheDirs.firstObject;
@@ -455,7 +436,7 @@ NSString *getFolderPath(void) {
 
   // --- Clear static wallpapers -----
 
-  NSString *sWallpapersCachePath = [self staticWallpaperChachePath];
+  NSString *sWallpapersCachePath = [self staticWallpaperCachePath];
   if ([fileManager fileExistsAtPath:sWallpapersCachePath]) {
     NSError *error = nil;
     NSArray *files = [fileManager contentsOfDirectoryAtPath:sWallpapersCachePath
@@ -502,7 +483,7 @@ NSString *getFolderPath(void) {
   }
   NSLog(@"Generating wallpapers...");
   NSFileManager *fileManager = [NSFileManager defaultManager];
-  NSString *wallpaperCachePath = [self staticWallpaperChachePath];
+  NSString *wallpaperCachePath = [self staticWallpaperCachePath];
 
   if (folderPath == nullptr) {
     folderPath = getFolderPath();
@@ -2048,7 +2029,7 @@ void launchDaemonOnScreen(NSString *videoPath, NSString *imagePath,
 
   NSString *imageFilename =
       [NSString stringWithFormat:@"%s.png", (const char *)videoName.c_str()];
-  NSString *imagePath = [[self staticWallpaperChachePath]
+  NSString *imagePath = [[self staticWallpaperCachePath]
       stringByAppendingPathComponent:imageFilename];
 
   NSFileManager *fm = [NSFileManager defaultManager];
