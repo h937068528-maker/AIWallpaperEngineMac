@@ -31,6 +31,8 @@
 #include <cstdlib>
 #include <float.h>
 
+#include "../DisplayManager.h"
+
 @interface VideoWallpaperDaemon : NSObject
 @property(strong) NSMutableArray<NSWindow *> *windows;
 @property(strong) NSMutableArray<AVQueuePlayer *> *players;
@@ -43,8 +45,8 @@
 
 @property(nonatomic, assign) NSInteger scalingMode;
 @property(nonatomic, strong) NSString *framePath;
-@property(nonatomic, assign) NSScreen *targetScreen;
-@property(nonatomic, assign) AVAsset *asset;
+@property(nonatomic, weak) NSScreen *targetScreen;
+@property(nonatomic, strong) AVAsset *asset;
 @property(nonatomic, assign) CGFloat targetPlaybackRate;
 @property(nonatomic, assign) BOOL reducedPerformanceMode;
 @property(nonatomic, assign) CGDirectDisplayID targetDisplayID;
@@ -175,7 +177,15 @@
   [window setIgnoresMouseEvents:YES];
 
   _asset = [AVAsset assetWithURL:videoURL];
-  AVPlayerItem *item = [[AVPlayerItem alloc] initWithAsset:_asset];
+  //AVPlayerItem *item = [[AVPlayerItem alloc] initWithAsset:_asset];
+    AVPlayerItem *item = nil;
+    @try {
+        item = [AVPlayerItem playerItemWithURL:videoURL];
+    } @catch (NSException *e) {
+        NSLog(@"[Daemon] AVPlayerItem init failed: %@, falling back", e.reason);
+        
+        item = [[AVPlayerItem alloc] initWithURL:videoURL];
+    }
   AVQueuePlayer *player = [AVQueuePlayer queuePlayerWithItems:@[]];
   AVPlayerLooper *looper = [AVPlayerLooper playerLooperWithPlayer:player
                                                      templateItem:item];
@@ -221,6 +231,7 @@
   layer.actions = @{@"contents" : [NSNull null]};
   [window.contentView.layer addSublayer:layer];
 
+
   [window setFrame:visibleFrame display:YES];
 
   [window makeKeyAndOrderFront:nil];
@@ -237,6 +248,41 @@
   [_players addObject:player];
   [_playerLayers addObject:layer];
   [_loopers addObject:looper];
+    
+    // Vintage Bar
+
+    
+    CALayer *overlayLayer = [CALayer layer];
+    overlayLayer.frame = window.contentView.bounds;
+    overlayLayer.zPosition = 100;
+
+    
+    CAGradientLayer *vintageBar = [CAGradientLayer layer];
+
+    
+    CGFloat barHeight = 50.0;
+    vintageBar.frame = CGRectMake(0, window.contentView.bounds.size.height - barHeight,
+                                   window.contentView.bounds.size.width, barHeight);
+
+    
+    vintageBar.colors = @[
+        (id)[NSColor colorWithDeviceWhite:0.0 alpha:0.8].CGColor,
+        (id)[NSColor colorWithDeviceWhite:0.0 alpha:0.1].CGColor
+    ];
+
+    
+    vintageBar.startPoint = CGPointMake(0.5, 1.0);
+    vintageBar.endPoint = CGPointMake(0.5, 0.15);
+
+    
+    vintageBar.autoresizingMask = kCALayerWidthSizable | kCALayerMinYMargin;
+
+    
+    [overlayLayer addSublayer:vintageBar];
+    [window.contentView.layer addSublayer:overlayLayer];
+
+    
+    [window.contentView.layer setNeedsDisplay];
 
   NSLog(@"✅ Screen %@ visibleFrame: %@", _targetScreen,
         NSStringFromRect(visibleFrame));
@@ -852,19 +898,12 @@ static void terminateWallpaperDaemonCallback(CFNotificationCenterRef center,
     NSError *error = nil;
 
     {
-      NSNumber *screenNumber =
-          _targetScreen.deviceDescription[@"NSScreenNumber"];
-      CGDirectDisplayID did =
-          (CGDirectDisplayID)[screenNumber unsignedIntValue];
+      // Get display UUID using modern API (replaces deprecated CGDisplayIOServicePort)
+      std::string uuidString = DisplayUUIDFromID(
+          (CGDirectDisplayID)[_targetScreen.deviceDescription[@"NSScreenNumber"] unsignedIntValue]);
 
-      // Get display info from IOKit (public API)
-      CFDictionaryRef displayInfo = IODisplayCreateInfoDictionary(
-          CGDisplayIOServicePort(did), kIOReturnSuccess);
-
-      if (displayInfo) {
-        NSDictionary *info = (__bridge NSDictionary *)displayInfo;
-
-        NSString *uuid = info[@"DisplayUUID"];
+      if (!uuidString.empty()) {
+        NSString *uuid = [NSString stringWithUTF8String:uuidString.c_str()];
         if (uuid) {
           // Build the desktop dictionary that macOS uses internally
           NSMutableDictionary *desktopSpec = [NSMutableDictionary dictionary];
@@ -884,8 +923,6 @@ static void terminateWallpaperDaemonCallback(CFNotificationCenterRef center,
                                    CFSTR("com.apple.desktop"));
           CFPreferencesAppSynchronize(CFSTR("com.apple.desktop"));
         }
-
-        CFRelease(displayInfo);
       }
     }
 

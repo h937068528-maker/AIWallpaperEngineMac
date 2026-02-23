@@ -165,7 +165,7 @@ static NSString *folderPath = nil;
                   object:nil
                    queue:[NSOperationQueue mainQueue]
               usingBlock:^(NSNotification *_Nonnull note) {
-                [self aweakHandle:note];
+                [self awakeHandle:note];
               }];
 }
 
@@ -181,7 +181,7 @@ static NSString *folderPath = nil;
       CFSTR("com.live.wallpaper.spaceChanged"), NULL, NULL, true);
 }
 
-- (void)aweakHandle:(NSNotification *)note {
+- (void)awakeHandle:(NSNotification *)note {
 
   if ([[NSUserDefaults standardUserDefaults] floatForKey:@"random_lid"]) {
     NSLog(@"Screen Aweaked!");
@@ -1098,7 +1098,7 @@ static NSString *folderPath = nil;
   return result;
 }
 
-- (void)selctFolder:(NSString *)path {
+- (void)selectFolder:(NSString *)path {
   NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
   [defaults setObject:path forKey:@"WallpaperFolder"];
 }
@@ -1106,6 +1106,7 @@ static NSString *folderPath = nil;
 - (void)terminateApplication {
   SaveSystem::Save(displays);
   [self killAllDaemons];
+    [self removeNotifications];
 }
 
 - (BOOL)isFirstLaunch {
