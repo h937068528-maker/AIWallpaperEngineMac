@@ -73,7 +73,7 @@
 - (NSString *)getFolderPath;
 - (void)checkFolderPath;
 - (void)scanDisplays;
-- (void)selctFolder:(NSString* )path;
+- (void)selectFolder:(NSString* )path;
 
 - (NSArray *)getDisplays;
 

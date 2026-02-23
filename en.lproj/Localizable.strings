@@ -1,0 +1,59 @@
+/*
+  Localizable.strings
+  LiveWallpaper
+
+  English localization
+*/
+
+// MARK: - Main UI
+"app_name" = "LiveWallpaper";
+"settings" = "Settings";
+"reload" = "Reload";
+
+// MARK: - Video Grid
+"select_wallpaper_folder" = "Select a wallpaper folder";
+"generating" = "Generating...";
+"video_thumbnail" = "Video thumbnail";
+
+// MARK: - Settings
+"wallpaper_folder" = "Wallpaper Folder";
+"select_folder_emoji" = "Select Folder 📁";
+"show_in_finder" = "Show in Finder 🗂";
+"video_scaling_mode" = "Video Scaling Mode";
+"random_on_startup" = "Random Wallpaper on Startup";
+"random_on_lid" = "Random Wallpaper on Lid Wakeup (Requires Application Restart)";
+"pause_when_active" = "Pause When App is Active";
+"video_volume" = "Video Volume";
+"optimize_codecs" = "Optimize Video Codecs";
+"optimize" = "Optimize 🛠️";
+"clear_cache" = "Clear Cache";
+"clear_cache_button" = "Clear Cache 🗑️";
+"reset_userdata" = "Reset UserData";
+"reset" = "Reset";
+
+// MARK: - Scaling Modes
+"scale_fill" = "Fill";
+"scale_fit" = "Fit";
+"scale_stretch" = "Stretch";
+"scale_center" = "Center";
+"scale_height_fill" = "HeightFill";
+
+// MARK: - Menu Bar
+"show_window" = "Show Window";
+"hide_window" = "Hide Window";
+"quit" = "Quit";
+
+// MARK: - File Dialog
+"select_folder_title" = "Select Wallpaper Folder";
+"choose" = "Choose";
+"select_folder_or_type" = "Select folder or type path";
+
+// MARK: - Display
+"display_resolution" = "%@ x %@";
+
+// MARK: - Language
+"app_language" = "App Language";
+"system_language" = "Follow System";
+"language_changed_title" = "Language Changed";
+"language_changed_message" = "Please restart the app for the language change to take effect.";
+"ok" = "OK";

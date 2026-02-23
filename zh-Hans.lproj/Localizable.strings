@@ -1,0 +1,66 @@
+/*
+  Localizable.strings
+  LiveWallpaper
+
+  简体中文本地化
+*/
+
+// MARK: - 主界面
+"app_name" = "动态壁纸";
+"settings" = "设置";
+"reload" = "刷新";
+
+// MARK: - 视频网格
+"select_wallpaper_folder" = "选择壁纸文件夹";
+"generating" = "生成中...";
+"video_thumbnail" = "视频缩略图";
+
+// MARK: - 设置项
+"wallpaper_folder" = "壁纸文件夹";
+"select_folder_emoji" = "选择文件夹 📁";
+"show_in_finder" = "在 Finder 中显示 🗂";
+"video_scaling_mode" = "视频缩放模式";
+"random_on_startup" = "启动时随机壁纸";
+"random_on_lid" = "开盖唤醒时随机壁纸（需要重启应用）";
+"pause_when_active" = "应用激活时暂停";
+"video_volume" = "视频音量";
+"optimize_codecs" = "优化视频编码";
+"optimize" = "优化 🛠️";
+"clear_cache" = "清除缓存";
+"clear_cache_button" = "清除缓存 🗑️";
+"reset_userdata" = "重置用户数据";
+"reset" = "重置";
+
+// MARK: - 缩放模式
+"scale_fill" = "填充";
+"scale_fit" = "适应";
+"scale_stretch" = "拉伸";
+"scale_center" = "居中";
+"scale_height_fill" = "高度填充";
+
+// MARK: - 菜单栏
+"show_window" = "显示窗口";
+"hide_window" = "隐藏窗口";
+"quit" = "退出";
+
+// MARK: - 文件对话框
+"select_folder_title" = "选择壁纸文件夹";
+"choose" = "选择";
+"select_folder_or_type" = "选择文件夹或输入路径";
+
+// MARK: - 显示器
+"display_resolution" = "%@ x %@";
+"display_unknown" = "未知显示器";
+
+// MARK: - 语言设置
+"app_language" = "应用语言";
+"system_language" = "跟随系统";
+"language_changed_title" = "语言已更改";
+"language_changed_message" = "请重启应用以使语言更改生效。";
+"ok" = "确定";
+
+// MARK: - 质量标签
+"quality_4k" = "4K";
+"quality_2k" = "2K";
+"quality_1080p" = "1080p";
+"quality_720p" = "720p";
