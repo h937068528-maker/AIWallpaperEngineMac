@@ -289,6 +289,39 @@
 
   [self setStaticWallpaper];
 }
+- (void)applyScalingMode{
+    _scalingMode = [[NSUserDefaults standardUserDefaults] integerForKey:@"scale_mode"];
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSRect visibleFrame = self->_targetScreen.frame;
+        
+        for (AVPlayerLayer *layer in self.playerLayers) {
+            switch (_scalingMode) {
+                case 1:
+                    layer.videoGravity = AVLayerVideoGravityResizeAspect;
+                    break;
+                case 2:
+                    layer.videoGravity = AVLayerVideoGravityResize;
+                    break;
+                case 3:
+                    layer.videoGravity = AVLayerVideoGravityResizeAspect;
+                    layer.anchorPoint = CGPointMake(0.5, 0.5);
+                    layer.position = CGPointMake(CGRectGetMidX(visibleFrame), CGRectGetMidY(visibleFrame));
+                    break;
+                case 0:
+                case 4:
+                default:
+                    layer.videoGravity = AVLayerVideoGravityResizeAspectFill;
+                    break;
+            }
+
+            if (_scalingMode != 3) {
+                layer.frame = visibleFrame;
+                layer.autoresizingMask = kCALayerWidthSizable | kCALayerHeightSizable;
+            }
+        }
+    });
+}
 
 - (void)screenLocked:(NSNotification *)note {
   // Save current playback state
@@ -957,6 +990,13 @@ static void SpaceChangeCallback(CFNotificationCenterRef center, void *observer,
   }
 }
 
+
+static void scaleModeChangeCallback(CFNotificationCenterRef center, void *observer,
+                                CFStringRef name, const void *object,
+                                CFDictionaryRef userInfo) {
+    VideoWallpaperDaemon *daemon = (__bridge VideoWallpaperDaemon *)observer;
+    [daemon applyScalingMode];
+}
 static void AutoPauseChangedCallback(CFNotificationCenterRef center,
                                      void *observer, CFStringRef name,
                                      const void *object,
@@ -1041,6 +1081,14 @@ int main(int argc, const char *argv[]) {
         (__bridge const void *)daemon, terminateWallpaperDaemonCallback,
         CFSTR("com.live.wallpaper.terminate"), NULL,
         CFNotificationSuspensionBehaviorDeliverImmediately);
+      
+      CFNotificationCenterAddObserver(
+          CFNotificationCenterGetDarwinNotifyCenter(),
+          (__bridge const void *)daemon, scaleModeChangeCallback,
+          CFSTR("com.live.wallpaper.scaleModeChanged"), NULL,
+          CFNotificationSuspensionBehaviorDeliverImmediately);
+      
+      
 
     [[NSRunLoop mainRunLoop] run];
   }

@@ -1137,6 +1137,18 @@ static NSString *folderPath = nil;
           CFSTR("com.live.wallpaper.volumeChanged"), NULL, NULL, true);
     }
 
+-(void)updateScaleMode:(NSInteger)mode{
+    
+    [[NSUserDefaults standardUserDefaults] setObject:@(mode)
+                                               forKey:@"scale_mode"];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+    
+    
+    CFNotificationCenterPostNotification(
+        CFNotificationCenterGetDarwinNotifyCenter(),
+        CFSTR("com.live.wallpaper.scaleModeChanged"), NULL, NULL, true);
+}
+
 
 @end
 

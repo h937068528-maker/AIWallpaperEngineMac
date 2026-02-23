@@ -78,6 +78,7 @@
 - (NSArray *)getDisplays;
 
 -(void)updateVolume:(double) value;
+-(void)updateScaleMode:(NSInteger) mode;
 
 -(void) terminateApplication;
 

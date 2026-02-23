@@ -443,6 +443,7 @@ struct SettingsView: View {
     @ObservedObject var viewModel: WallpaperViewModel
     @Environment(\.dismiss) private var dismiss
     @State private var showFolderPicker = false
+    @AppStorage(UserDefaultsKeys.scaleMode) var scaleMode: Int = 0
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -482,39 +483,21 @@ struct SettingsView: View {
 
                     // Scale Mode
                     SettingRow(title: L.videoScalingMode) {
-                        Picker("", selection: Binding(
-                            get: {
-                                let mode = UserDefaults.standard.integer(forKey: UserDefaultsKeys.scaleMode)
-                                switch mode {
-                                case 0: return "fill"
-                                case 1: return "fit"
-                                case 2: return "stretch"
-                                case 3: return "center"
-                                case 4: return "height-fill"
-                                default: return "fill"
-                                }
-                            },
-                            set: { newValue in
-                                let intValue: Int
-                                switch newValue {
-                                case "fill": intValue = 0
-                                case "fit": intValue = 1
-                                case "stretch": intValue = 2
-                                case "center": intValue = 3
-                                case "height-fill": intValue = 4
-                                default: intValue = 0
-                                }
-                                UserDefaults.standard.set(intValue, forKey: UserDefaultsKeys.scaleMode)
-                            }
-                        )) {
-                            Text(L.scaleFill).tag("fill")
-                            Text(L.scaleFit).tag("fit")
-                            Text(L.scaleStretch).tag("stretch")
-                            Text(L.scaleCenter).tag("center")
-                            Text(L.scaleHeightFill).tag("height-fill")
+                        
+
+                            
+                        Picker("", selection: $scaleMode) {
+                            Text(L.scaleFill).tag(0)
+                            Text(L.scaleFit).tag(1)
+                            Text(L.scaleStretch).tag(2)
+                            Text(L.scaleCenter).tag(3)
+                            Text(L.scaleHeightFill).tag(4)
                         }
-                        .pickerStyle(.menu)
-                        .frame(width: 150)
+                        .onChange(of: scaleMode) {
+                            
+                            viewModel.engine.updateScaleMode(scaleMode)
+                        }
+                            
                     }
 
                     Divider()
@@ -853,4 +836,8 @@ class WallpaperViewModel: ObservableObject {
 
 #Preview {
     ContentView()
+}
+
+#Preview {
+    SettingsView(viewModel: WallpaperViewModel())
 }
