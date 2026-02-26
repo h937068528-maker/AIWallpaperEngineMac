@@ -1,0 +1,175 @@
+{
+  "fill" : {
+    "linear-gradient" : [
+      "display-p3:0.00000,0.00000,0.00000,1.00000",
+      "display-p3:0.28210,0.22709,0.08449,1.00000"
+    ],
+    "orientation" : {
+      "start" : {
+        "x" : 0.5,
+        "y" : 0
+      },
+      "stop" : {
+        "x" : 0.5,
+        "y" : 0.7
+      }
+    }
+  },
+  "groups" : [
+    {
+      "layers" : [
+        {
+          "hidden" : false,
+          "image-name" : "dotgrid-26E01-632494.png",
+          "name" : "dotgrid-26E01-632494",
+          "opacity" : 1,
+          "position" : {
+            "scale" : 0.8,
+            "translation-in-points" : [
+              35,
+              -100
+            ]
+          }
+        },
+        {
+          "glass" : true,
+          "hidden" : false,
+          "image-name" : "dotgrid-26E01-632896.png",
+          "name" : "dotgrid-26E01-632896",
+          "opacity" : 0,
+          "position" : {
+            "scale" : 0.8,
+            "translation-in-points" : [
+              35,
+              -100
+            ]
+          }
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    },
+    {
+      "layers" : [
+
+      ],
+      "position" : {
+        "scale" : 1,
+        "translation-in-points" : [
+          -11,
+          0
+        ]
+      },
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    },
+    {
+      "layers" : [
+        {
+          "hidden" : false,
+          "image-name" : "dotgrid-26E01-625916.png",
+          "name" : "dotgrid-26E01-625916",
+          "opacity" : 0,
+          "position" : {
+            "scale" : 0.8,
+            "translation-in-points" : [
+              45,
+              -100
+            ]
+          }
+        },
+        {
+          "hidden" : false,
+          "image-name" : "dotgrid-26E01-625916.png",
+          "name" : "dotgrid-26E01-625916",
+          "opacity" : 0,
+          "position" : {
+            "scale" : 0.8,
+            "translation-in-points" : [
+              55,
+              -100
+            ]
+          }
+        },
+        {
+          "hidden" : false,
+          "image-name" : "dotgrid-26E01-625916.png",
+          "name" : "dotgrid-26E01-625916",
+          "opacity" : 0,
+          "position" : {
+            "scale" : 0.8,
+            "translation-in-points" : [
+              65,
+              -100
+            ]
+          }
+        },
+        {
+          "hidden" : false,
+          "image-name" : "dotgrid-26E01-625916.png",
+          "name" : "dotgrid-26E01-625916",
+          "opacity" : 0,
+          "position" : {
+            "scale" : 0.8,
+            "translation-in-points" : [
+              75,
+              -100
+            ]
+          }
+        },
+        {
+          "hidden" : false,
+          "image-name" : "dotgrid-26E01-625916.png",
+          "name" : "dotgrid-26E01-625916",
+          "opacity" : 0,
+          "position" : {
+            "scale" : 0.8,
+            "translation-in-points" : [
+              85,
+              -100
+            ]
+          }
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    },
+    {
+      "layers" : [
+
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "circles" : [
+      "watchOS"
+    ],
+    "squares" : "shared"
+  }
+}
