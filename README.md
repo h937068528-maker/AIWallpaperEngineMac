@@ -3,6 +3,7 @@
 
 # LiveWallpaper App for MacOS 14+
 
+**Languages:** English | [简体中文](README.zh-Hans.md)
 
 ![Roller](./asset/livewall.png)
 
