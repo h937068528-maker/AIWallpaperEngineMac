@@ -53,10 +53,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         
         let menu = NSMenu()
-        menu.addItem(NSMenuItem(title: NSLocalizedString("show_window", comment: ""), action: #selector(showWindow), keyEquivalent: "s"))
-        menu.addItem(NSMenuItem(title: NSLocalizedString("hide_window", comment: ""), action: #selector(hideWindow), keyEquivalent: "h"))
+        menu.addItem(NSMenuItem(title: NSLocalizedString("Show window", comment: ""), action: #selector(showWindow), keyEquivalent: "s"))
+        menu.addItem(NSMenuItem(title: NSLocalizedString("Hide window", comment: ""), action: #selector(hideWindow), keyEquivalent: "h"))
         menu.addItem(NSMenuItem.separator())
-        menu.addItem(NSMenuItem(title: NSLocalizedString("quit", comment: ""), action: #selector(quit), keyEquivalent: "q"))
+        menu.addItem(NSMenuItem(title: NSLocalizedString("Quit", comment: ""), action: #selector(quit), keyEquivalent: "q"))
         statusItem.menu = menu
 
         // Create main window with ContentView

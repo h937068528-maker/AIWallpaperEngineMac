@@ -102,31 +102,32 @@ class LanguageManager: ObservableObject {
 
 // MARK: - Localization
 enum L {
-    static let selectWallpaperFolder = NSLocalizedString("select_wallpaper_folder", comment: "")
-    static let generating = NSLocalizedString("generating", comment: "")
-    static let settings = NSLocalizedString("settings", comment: "")
-    static let wallpaperFolder = NSLocalizedString("wallpaper_folder", comment: "")
-    static let selectFolderEmoji = NSLocalizedString("select_folder_emoji", comment: "")
-    static let showInFinder = NSLocalizedString("show_in_finder", comment: "")
-    static let videoScalingMode = NSLocalizedString("video_scaling_mode", comment: "")
-    static let scaleFill = NSLocalizedString("scale_fill", comment: "")
-    static let scaleFit = NSLocalizedString("scale_fit", comment: "")
-    static let scaleStretch = NSLocalizedString("scale_stretch", comment: "")
-    static let scaleCenter = NSLocalizedString("scale_center", comment: "")
-    static let scaleHeightFill = NSLocalizedString("scale_height_fill", comment: "")
-    static let randomOnStartup = NSLocalizedString("random_on_startup", comment: "")
-    static let randomOnLid = NSLocalizedString("random_on_lid", comment: "")
-    static let pauseWhenActive = NSLocalizedString("pause_when_active", comment: "")
-    static let videoVolume = NSLocalizedString("video_volume", comment: "")
-    static let optimizeCodecs = NSLocalizedString("optimize_codecs", comment: "")
-    static let optimize = NSLocalizedString("optimize", comment: "")
-    static let clearCache = NSLocalizedString("clear_cache", comment: "")
-    static let clearCacheButton = NSLocalizedString("clear_cache_button", comment: "")
-    static let resetUserData = NSLocalizedString("reset_userdata", comment: "")
-    static let reset = NSLocalizedString("reset", comment: "")
-    static let selectFolderTitle = NSLocalizedString("select_folder_title", comment: "")
-    static let choose = NSLocalizedString("choose", comment: "")
-    static let selectFolderOrType = NSLocalizedString("select_folder_or_type", comment: "")
+    static let selectWallpaperFolder = NSLocalizedString("Select Wallpaper Folder", comment: "")
+    static let generating = NSLocalizedString("Generating...", comment: "")
+    static let settings = NSLocalizedString("Settings", comment: "")
+    static let wallpaperFolder = NSLocalizedString("Wallpaper folder", comment: "")
+    static let selectFolderEmoji = NSLocalizedString("Select folder emoji", comment: "")
+    static let showInFinder = NSLocalizedString("Show in finder", comment: "")
+    static let videoScalingMode = NSLocalizedString("Video scaling mode", comment: "")
+    static let scaleFill = NSLocalizedString("Scale fill", comment: "")
+    static let scaleFit = NSLocalizedString("Scale fit", comment: "")
+    static let scaleStretch = NSLocalizedString("Scale stretch", comment: "")
+    static let scaleCenter = NSLocalizedString("Scale center", comment: "")
+    static let scaleHeightFill = NSLocalizedString("Scale height fill", comment: "")
+    static let randomOnStartup = NSLocalizedString("Sandom on startup", comment: "")
+    static let randomOnLid = NSLocalizedString("Random on lid", comment: "")
+    static let pauseWhenActive = NSLocalizedString("Pause when active", comment: "")
+    static let videoVolume = NSLocalizedString("Video volume", comment: "")
+    static let optimizeCodecs = NSLocalizedString("Optimize codecs", comment: "")
+    static let optimize = NSLocalizedString("Optimize", comment: "")
+    static let clearCache = NSLocalizedString("Clear cache", comment: "")
+    static let clearCacheButton = NSLocalizedString("Clear cache", comment: "")
+    static let resetUserData = NSLocalizedString("Reset userdata", comment: "")
+    static let reset = NSLocalizedString("Reset", comment: "")
+    static let selectFolderTitle = NSLocalizedString("Select folder title", comment: "")
+    static let choose = NSLocalizedString("Choose", comment: "")
+    static let selectFolderOrType = NSLocalizedString("Select folder or type", comment: "")
+    static let vinttageBar = NSLocalizedString("Vintage bar(Reapply the wallpaper after change)", comment: "")
 }
 
 // MARK: - UserDefaults Keys
@@ -139,6 +140,7 @@ enum UserDefaultsKeys {
     static let volumePercentage = "wallpapervolumeprecentage"
     static let launchAtLogin = "LaunchAtLogin"
     static let appLanguage = "app_language"
+    static let vintageBar = "vinttage_bar"
 }
 
 // MARK: - Main Content View
@@ -503,7 +505,7 @@ struct SettingsView: View {
                     Divider()
 
                     // Language Selection
-                    SettingRow(title: NSLocalizedString("app_language", comment: "")) {
+                    SettingRow(title: NSLocalizedString("App language", comment: "")) {
                         Picker("", selection: Binding(
                             get: { LanguageManager.shared.currentLanguage },
                             set: { newValue in
@@ -552,6 +554,16 @@ struct SettingsView: View {
                         ))
                         .toggleStyle(.switch)
                     }
+                    
+                    //Vinttage Bar
+                    SettingRow(title: L.vinttageBar) {
+                        Toggle("", isOn: Binding(
+                            get: { UserDefaults.standard.bool(forKey: UserDefaultsKeys.vintageBar) },
+                            set: { UserDefaults.standard.set($0, forKey: UserDefaultsKeys.vintageBar) }
+                        ))
+                        .toggleStyle(.switch)
+                    }
+                    
 
                     Divider()
 
@@ -724,6 +736,7 @@ class WallpaperViewModel: ObservableObject {
     @Published var randomOnStartup: Bool = false
     @Published var pauseOnAppFocus: Bool = true
     @Published var volume: Double = 50.0
+    @Published var vinttageBar: Bool = true
 
     private var currentReloadID = UUID()
     private let reloadIDLock = NSLock()
@@ -746,6 +759,7 @@ class WallpaperViewModel: ObservableObject {
         randomOnStartup = defaults.bool(forKey: UserDefaultsKeys.randomOnStartup)
         pauseOnAppFocus = defaults.bool(forKey: UserDefaultsKeys.pauseOnAppFocus)
         volume = Double(defaults.float(forKey: UserDefaultsKeys.volumePercentage))
+        vinttageBar = defaults.bool(forKey: UserDefaultsKeys.vintageBar)
     }
 
     func reloadContent() {

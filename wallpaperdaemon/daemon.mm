@@ -249,37 +249,42 @@
   [_playerLayers addObject:layer];
   [_loopers addObject:looper];
     
-    // Vintage Bar
-
     
-    CALayer *overlayLayer = [CALayer layer];
-    overlayLayer.frame = window.contentView.bounds;
-    overlayLayer.zPosition = 100;
-
-    
-    CAGradientLayer *vintageBar = [CAGradientLayer layer];
-
-    
-    CGFloat barHeight = 50.0;
-    vintageBar.frame = CGRectMake(0, window.contentView.bounds.size.height - barHeight,
-                                   window.contentView.bounds.size.width, barHeight);
-
-    
-    vintageBar.colors = @[
-        (id)[NSColor colorWithDeviceWhite:0.0 alpha:0.8].CGColor,
-        (id)[NSColor colorWithDeviceWhite:0.0 alpha:0.1].CGColor
-    ];
-
-    
-    vintageBar.startPoint = CGPointMake(0.5, 1.0);
-    vintageBar.endPoint = CGPointMake(0.5, 0.15);
-
-    
-    vintageBar.autoresizingMask = kCALayerWidthSizable | kCALayerMinYMargin;
-
-    
-    [overlayLayer addSublayer:vintageBar];
-    [window.contentView.layer addSublayer:overlayLayer];
+    if( [[NSUserDefaults standardUserDefaults] floatForKey:@"vinttage_bar"]){
+        
+        
+        // Vintage Bar
+        
+        
+        CALayer *overlayLayer = [CALayer layer];
+        overlayLayer.frame = window.contentView.bounds;
+        overlayLayer.zPosition = 100;
+        
+        
+        CAGradientLayer *vintageBar = [CAGradientLayer layer];
+        
+        
+        CGFloat barHeight = 50.0;
+        vintageBar.frame = CGRectMake(0, window.contentView.bounds.size.height - barHeight,
+                                      window.contentView.bounds.size.width, barHeight);
+        
+        
+        vintageBar.colors = @[
+            (id)[NSColor colorWithDeviceWhite:0.0 alpha:0.8].CGColor,
+            (id)[NSColor colorWithDeviceWhite:0.0 alpha:0.1].CGColor
+        ];
+        
+        
+        vintageBar.startPoint = CGPointMake(0.5, 1.0);
+        vintageBar.endPoint = CGPointMake(0.5, 0.15);
+        
+        
+        vintageBar.autoresizingMask = kCALayerWidthSizable | kCALayerMinYMargin;
+        
+        
+        [overlayLayer addSublayer:vintageBar];
+        [window.contentView.layer addSublayer:overlayLayer];
+    }
 
     
     [window.contentView.layer setNeedsDisplay];
