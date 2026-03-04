@@ -1,33 +1,45 @@
 > [!NOTE]
-> ## I’ll be Transformin Objective C++ UI's to SwiftUI.But ```daemon``` won't change.
+> ## I’ll be Transforming Objective C++ UI's to SwiftUI. But the ```daemon``` won't change.
 
 # LiveWallpaper App for MacOS 14+
 
+**Languages:** English | [简体中文](README.zh-Hans.md)
 
 ![Roller](./asset/livewall.png)
 
-This is an open-source live wallpaper applicationn for MacOS 14+
+This is an open-source live wallpaper application for MacOS 14+
 
-<!-- ## Install using brew
+## Install using brew
 
-Run this on terminal `brew tap thusvill/livewallpaper && brew install --cask livewallpaper` -->
+Run this on terminal `brew tap thusvill/livewallpaper && brew install --cask livewallpaper`
+
+## Installation(Compile from source)
+- macOS 14+
+- git
+- Xcode
+- Cmake
+  
+Run this: `git clone https://github.com/thusvill/LiveWallpaperMacOS.git && cd LiveWallpaperMacOS && mkdir -p build && cd build && cmake .. && make -j$(sysctl -n hw.ncpu)`
+
 
 ## Guide for DMG Installation
 
 > [!IMPORTANT]
 > ## Fix “LiveWallpaper.app” is corrupted and cannot be opened. It is recommended that you move the object to the recycle bin.
-> After you install the app in Application folder you have to bypass Gatekeeper for run this(I don't want to pay apple for opensource apps)
+> After you install the app in Application folder you have to bypass Gatekeeper to run this since I don't want to pay apple for opensource apps.
 > 
 > This will solve the occupation issue
 > 
 > `xattr -d com.apple.quarantine /Applications/LiveWallpaper.app` 
 
-Click the OpenInFinder button and it'll open a folder, you can place wallpapers in it.
+Click the "OpenInFinder" button and it'll open a folder, you can place wallpapers in it.
 
 > [!NOTE]
-> no dots should be contained on the file name exept the dot for extension
+> Make sure the folder selected doesn't include spaces.
+>
+> No dots should be contained on the file name exept the dot for extension!
 > 
-> ## Eg-:
+> ## Eg:
 > 
 >  - file.1920x1080.mp4 ❌ ('.'s > 1)
 > 
@@ -42,7 +54,7 @@ Click the OpenInFinder button and it'll open a folder, you can place wallpapers 
 
 > ![Application](./asset/application.png)
 
-> ## This is a static image, Currently this app doesn't support live wallpapers on lock screen.
+> ## This is a static image, currently LiveWallpaper doesn't support videos on the lock screen.
 > ![lockscreen](./asset/lockscreen.png)
 
 > ![settings](./asset/settings.png)
@@ -52,7 +64,7 @@ Click the OpenInFinder button and it'll open a folder, you can place wallpapers 
 
 
 
-> # Preformace
+> # Preformance
 > ![p1](./asset/preformance1.png)
 > ![p2](./asset/preformance2.png)
 > ![p3](./asset/preformance3.png)
@@ -60,18 +72,6 @@ Click the OpenInFinder button and it'll open a folder, you can place wallpapers 
 
 > https://github.com/user-attachments/assets/9575873c-79e6-4eba-a7a5-9408b2cc4ed0
 
-
-
-
-
-
-<!-- ## Installation(Compile from source)
-- macOS 15+
-- git
-- Xcode
-- Cmake
-  
-Run this: `git clone https://github.com/thusvill/LiveWallpaperMacOS.git && cd LiveWallpaperMacOS && mkdir -p build && cd build && cmake .. && make -j$(sysctl -n hw.ncpu)` -->
 
 <!-- ## Gallery
 > <img width="185" height="134" alt="Screenshot 2025-11-30 at 1 52 01 PM" src="https://github.com/user-attachments/assets/0c91fb29-e729-485b-8f93-7080aed68881" />
@@ -91,4 +91,4 @@ Run this: `git clone https://github.com/thusvill/LiveWallpaperMacOS.git && cd Li
 > https://github.com/user-attachments/assets/748c7078-1f99-4182-876f-08aa59d2bc63 -->
  
 
-For license details, see [LICENSE](LICENSE).
+For licensing details, see [LICENSE](LICENSE).
