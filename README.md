@@ -64,7 +64,7 @@ Click the "OpenInFinder" button and it'll open a folder, you can place wallpaper
 
 
 
-> # Preformance
+> # Performance
 > ![p1](./asset/preformance1.png)
 > ![p2](./asset/preformance2.png)
 > ![p3](./asset/preformance3.png)
