@@ -95,6 +95,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func showWindow() {
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
+        
     }
 
     // Hide the window without quitting the app

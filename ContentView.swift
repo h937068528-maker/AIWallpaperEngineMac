@@ -107,12 +107,12 @@ class LanguageManager: ObservableObject {
 
 // MARK: - Localization
 enum L {
-    static let selectWallpaperFolder = NSLocalizedString("Select Wallpaper Folder", comment: "")
+    static let selectWallpaperFolder = NSLocalizedString("📁", comment: "")
     static let generating = NSLocalizedString("Generating...", comment: "")
     static let settings = NSLocalizedString("Settings", comment: "")
     static let wallpaperFolder = NSLocalizedString("Wallpaper folder", comment: "")
-    static let selectFolderEmoji = NSLocalizedString("Select folder emoji", comment: "")
-    static let showInFinder = NSLocalizedString("Show in finder", comment: "")
+    static let selectFolderEmoji = NSLocalizedString("📁", comment: "")
+    static let showInFinder = NSLocalizedString("📂", comment: "")
     static let videoScalingMode = NSLocalizedString("Video scaling mode", comment: "")
     static let scaleFill = NSLocalizedString("Scale fill", comment: "")
     static let scaleFit = NSLocalizedString("Scale fit", comment: "")
@@ -135,7 +135,7 @@ enum L {
     static let wallpaperRotation = NSLocalizedString("Wallpaper rotation", comment: "")
     static let rotationType = NSLocalizedString("Wallpaper rotation type", comment: "")
     static let vinttageBar = NSLocalizedString(
-        "Vignette bar(Reapply the wallpaper after change)", comment: "")
+        "Vignette bar (Reapply the wallpaper after change)", comment: "")
 
     static let rotationDelay = NSLocalizedString("Wallpaper rotation delay", comment: "")
 }
@@ -167,41 +167,63 @@ struct ContentView: View {
     static var didCloseOnLaunch = false
 
     var body: some View {
-        VStack(spacing: 0) {
-            Spacer(minLength: 20)
-            ToolbarView(showSettings: $showSettings, onReload: { viewModel.reloadContent() })
-                .padding(.horizontal).padding(.top, 24).padding(.bottom, 12)
 
-            ZStack(alignment: .bottom) {
-                VideoGridView(
-                    videos: viewModel.videos, viewModel: viewModel,
-                    onVideoSelect: { video in
-                        viewModel.startWallpaper(
-                            video: video, displays: Array(displayManager.selectedDisplays))
+        ZStack {
+
+            VStack(spacing: 0) {
+                Spacer(minLength: 20)
+                ToolbarView(showSettings: $showSettings, onReload: { viewModel.reloadContent() })
+                    .padding(.horizontal).padding(.top, 24).padding(.bottom, 12)
+
+                ZStack(alignment: .bottom) {
+                    VideoGridView(
+                        videos: viewModel.videos, viewModel: viewModel,
+                        onVideoSelect: { video in
+                            viewModel.startWallpaper(
+                                video: video, displays: Array(displayManager.selectedDisplays))
+                        }
+                    )
+                    .padding(.horizontal, 24).padding(.bottom, 24)
+
+                    DisplayDockView(
+                        displays: displayManager.displays,
+                        selectedDisplays: $displayManager.selectedDisplays
+                    )
+                    .padding(.bottom, 20)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+
+            .ignoresSafeArea(.all)
+            .compatibleGlass(cornerRadius: 16)
+            .frame(minWidth: 600, minHeight: 250)
+            //.sheet(isPresented: $showSettings) { SettingsView(viewModel: viewModel) }
+            .onAppear {
+                viewModel.loadDisplays()
+                viewModel.reloadContent()
+                if !Self.didCloseOnLaunch, let engine = sharedEngine, !engine.isFirstLaunch() {
+                    Self.didCloseOnLaunch = true
+                    dismiss()
+                }
+            }
+
+            if showSettings {
+
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        showSettings = false
+
                     }
-                )
-                .padding(.horizontal, 24).padding(.bottom, 24)
 
-                DisplayDockView(
-                    displays: displayManager.displays,
-                    selectedDisplays: $displayManager.selectedDisplays
-                )
-                .padding(.bottom, 20)
+                SettingsView(viewModel: viewModel)
+                    .shadow(radius: 3)
+                    .cornerRadius(15)
+                    .onTapGesture {}
+                    .animation(.easeInOut, value: showSettings)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-        }
-        .ignoresSafeArea(.all)
-        .compatibleGlass(cornerRadius: 16)
-        .frame(minWidth: 600, minHeight: 250)
-        .sheet(isPresented: $showSettings) { SettingsView(viewModel: viewModel) }
-        .onAppear {
-            viewModel.loadDisplays()
-            viewModel.reloadContent()
-            if !Self.didCloseOnLaunch, let engine = sharedEngine, !engine.isFirstLaunch() {
-                Self.didCloseOnLaunch = true
-                dismiss()
-            }
-        }
+
+        }.animation(.easeInOut, value: showSettings)
     }
 }
 
@@ -472,21 +494,17 @@ struct SettingsView: View {
     @State private var showFolderPicker = false
     @AppStorage(UserDefaultsKeys.scaleMode) var scaleMode: Int = 0
     @State private var localMinutes: Int = 60
+    @State private var isShowingView = true
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
+
             // Header
             HStack {
                 Text(L.settings)
                     .font(.title2)
                     .fontWeight(.bold)
-                Spacer()
-                Button(action: { dismiss() }) {
-                    Image(systemName: "xmark.circle.fill")
-                }
-                .buttonStyle(BorderlessButtonStyle())
-                .background(VisualEffectView(material: .hudWindow).clipShape(Circle()))
-                .font(Font.system(size: 16, weight: .bold, design: .default))
+
             }
             .padding(.bottom, 8)
 
@@ -498,12 +516,14 @@ struct SettingsView: View {
                             TextField(L.selectFolderOrType, text: $viewModel.folderPath)
                                 .textFieldStyle(.roundedBorder)
                                 .frame(width: 200)
-                            Button(L.selectFolderEmoji) {
-                                selectFolder()
+                            Button(action: selectFolder) {
+                                Image(systemName: "folder.fill")
                             }
-                            Button(L.showInFinder) {
-                                openInFinder()
+                            Button(action: openInFinder) {
+                                Image(systemName: "finder")
                             }
+                            
+                            
                         }
                     }
 
@@ -654,7 +674,7 @@ struct SettingsView: View {
                         ).toggleStyle(.switch)
 
                     }
-                    
+
                     SettingRow(title: L.rotationDelay) {
                         HStack(spacing: 8) {
                             // 1. The Typeable Field
@@ -673,7 +693,7 @@ struct SettingsView: View {
                                 .onChange(of: localMinutes) { newValue in
                                     sharedEngine?.rotationDelay = Int32(newValue * 60)
                                     UserDefaults.standard.set(
-                                        (newValue*60), forKey: UserDefaultsKeys.rdelay)
+                                        (newValue * 60), forKey: UserDefaultsKeys.rdelay)
                                     print("Delay updated to: \(sharedEngine?.rotationDelay ?? 0)")
                                 }
 
@@ -688,7 +708,8 @@ struct SettingsView: View {
 
                     .onAppear {
                         if let engine = sharedEngine {
-                            localMinutes = UserDefaults.standard.integer(forKey: UserDefaultsKeys.rdelay)/60
+                            localMinutes =
+                                UserDefaults.standard.integer(forKey: UserDefaultsKeys.rdelay) / 60
                         }
                     }
 
@@ -768,6 +789,7 @@ struct SettingsView: View {
         .frame(width: 600, height: 500)
         .background(.ultraThinMaterial)
         .compatibleGlass(cornerRadius: 1)
+
     }
     func formatTime(_ totalMinutes: Int) -> String {
         let h = totalMinutes / 60
