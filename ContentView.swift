@@ -119,7 +119,7 @@ enum L {
     static let scaleStretch = NSLocalizedString("Scale stretch", comment: "")
     static let scaleCenter = NSLocalizedString("Scale center", comment: "")
     static let scaleHeightFill = NSLocalizedString("Scale height fill", comment: "")
-    static let randomOnStartup = NSLocalizedString("Sandom on startup", comment: "")
+    static let randomOnStartup = NSLocalizedString("Random on startup", comment: "")
     static let randomOnLid = NSLocalizedString("Random on lid", comment: "")
     static let pauseWhenActive = NSLocalizedString("Pause when active", comment: "")
     static let videoVolume = NSLocalizedString("Video volume", comment: "")
