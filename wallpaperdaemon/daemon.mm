@@ -177,15 +177,15 @@
   [window setIgnoresMouseEvents:YES];
 
   _asset = [AVAsset assetWithURL:videoURL];
-  //AVPlayerItem *item = [[AVPlayerItem alloc] initWithAsset:_asset];
-    AVPlayerItem *item = nil;
-    @try {
-        item = [AVPlayerItem playerItemWithURL:videoURL];
-    } @catch (NSException *e) {
-        NSLog(@"[Daemon] AVPlayerItem init failed: %@, falling back", e.reason);
-        
-        item = [[AVPlayerItem alloc] initWithURL:videoURL];
-    }
+  // AVPlayerItem *item = [[AVPlayerItem alloc] initWithAsset:_asset];
+  AVPlayerItem *item = nil;
+  @try {
+    item = [AVPlayerItem playerItemWithURL:videoURL];
+  } @catch (NSException *e) {
+    NSLog(@"[Daemon] AVPlayerItem init failed: %@, falling back", e.reason);
+
+    item = [[AVPlayerItem alloc] initWithURL:videoURL];
+  }
   AVQueuePlayer *player = [AVQueuePlayer queuePlayerWithItems:@[]];
   AVPlayerLooper *looper = [AVPlayerLooper playerLooperWithPlayer:player
                                                      templateItem:item];
@@ -231,7 +231,6 @@
   layer.actions = @{@"contents" : [NSNull null]};
   [window.contentView.layer addSublayer:layer];
 
-
   [window setFrame:visibleFrame display:YES];
 
   [window makeKeyAndOrderFront:nil];
@@ -248,84 +247,77 @@
   [_players addObject:player];
   [_playerLayers addObject:layer];
   [_loopers addObject:looper];
-    
-    
-    if( [[NSUserDefaults standardUserDefaults] floatForKey:@"vinttage_bar"]){
-        
-        
-        // Vintage Bar
-        
-        
-        CALayer *overlayLayer = [CALayer layer];
-        overlayLayer.frame = window.contentView.bounds;
-        overlayLayer.zPosition = 100;
-        
-        
-        CAGradientLayer *vintageBar = [CAGradientLayer layer];
-        
-        
-        CGFloat barHeight = 50.0;
-        vintageBar.frame = CGRectMake(0, window.contentView.bounds.size.height - barHeight,
-                                      window.contentView.bounds.size.width, barHeight);
-        
-        
-        vintageBar.colors = @[
-            (id)[NSColor colorWithDeviceWhite:0.0 alpha:0.8].CGColor,
-            (id)[NSColor colorWithDeviceWhite:0.0 alpha:0.1].CGColor
-        ];
-        
-        
-        vintageBar.startPoint = CGPointMake(0.5, 1.0);
-        vintageBar.endPoint = CGPointMake(0.5, 0.15);
-        
-        
-        vintageBar.autoresizingMask = kCALayerWidthSizable | kCALayerMinYMargin;
-        
-        
-        [overlayLayer addSublayer:vintageBar];
-        [window.contentView.layer addSublayer:overlayLayer];
-    }
 
-    
-    [window.contentView.layer setNeedsDisplay];
+  if ([[NSUserDefaults standardUserDefaults] floatForKey:@"vinttage_bar"]) {
+
+    // Vignette Bar
+
+    CALayer *overlayLayer = [CALayer layer];
+    overlayLayer.frame = window.contentView.bounds;
+    overlayLayer.zPosition = 100;
+
+    CAGradientLayer *vignetteBar = [CAGradientLayer layer];
+
+    CGFloat barHeight = 50.0;
+    vignetteBar.frame =
+        CGRectMake(0, window.contentView.bounds.size.height - barHeight,
+                   window.contentView.bounds.size.width, barHeight);
+
+    vignetteBar.colors = @[
+      (id)[NSColor colorWithDeviceWhite:0.0 alpha:0.8].CGColor,
+      (id)[NSColor colorWithDeviceWhite:0.0 alpha:0.1].CGColor
+    ];
+
+    vignetteBar.startPoint = CGPointMake(0.5, 1.0);
+    vignetteBar.endPoint = CGPointMake(0.5, 0.15);
+
+    vignetteBar.autoresizingMask = kCALayerWidthSizable | kCALayerMinYMargin;
+
+    [overlayLayer addSublayer:vignetteBar];
+    [window.contentView.layer addSublayer:overlayLayer];
+  }
+
+  [window.contentView.layer setNeedsDisplay];
 
   NSLog(@"✅ Screen %@ visibleFrame: %@", _targetScreen,
         NSStringFromRect(visibleFrame));
 
   [self setStaticWallpaper];
 }
-- (void)applyScalingMode{
-    _scalingMode = [[NSUserDefaults standardUserDefaults] integerForKey:@"scale_mode"];
-    
-    dispatch_async(dispatch_get_main_queue(), ^{
-        NSRect visibleFrame = self->_targetScreen.frame;
-        
-        for (AVPlayerLayer *layer in self.playerLayers) {
-            switch (_scalingMode) {
-                case 1:
-                    layer.videoGravity = AVLayerVideoGravityResizeAspect;
-                    break;
-                case 2:
-                    layer.videoGravity = AVLayerVideoGravityResize;
-                    break;
-                case 3:
-                    layer.videoGravity = AVLayerVideoGravityResizeAspect;
-                    layer.anchorPoint = CGPointMake(0.5, 0.5);
-                    layer.position = CGPointMake(CGRectGetMidX(visibleFrame), CGRectGetMidY(visibleFrame));
-                    break;
-                case 0:
-                case 4:
-                default:
-                    layer.videoGravity = AVLayerVideoGravityResizeAspectFill;
-                    break;
-            }
+- (void)applyScalingMode {
+  _scalingMode =
+      [[NSUserDefaults standardUserDefaults] integerForKey:@"scale_mode"];
 
-            if (_scalingMode != 3) {
-                layer.frame = visibleFrame;
-                layer.autoresizingMask = kCALayerWidthSizable | kCALayerHeightSizable;
-            }
-        }
-    });
+  dispatch_async(dispatch_get_main_queue(), ^{
+    NSRect visibleFrame = self->_targetScreen.frame;
+
+    for (AVPlayerLayer *layer in self.playerLayers) {
+      switch (_scalingMode) {
+      case 1:
+        layer.videoGravity = AVLayerVideoGravityResizeAspect;
+        break;
+      case 2:
+        layer.videoGravity = AVLayerVideoGravityResize;
+        break;
+      case 3:
+        layer.videoGravity = AVLayerVideoGravityResizeAspect;
+        layer.anchorPoint = CGPointMake(0.5, 0.5);
+        layer.position = CGPointMake(CGRectGetMidX(visibleFrame),
+                                     CGRectGetMidY(visibleFrame));
+        break;
+      case 0:
+      case 4:
+      default:
+        layer.videoGravity = AVLayerVideoGravityResizeAspectFill;
+        break;
+      }
+
+      if (_scalingMode != 3) {
+        layer.frame = visibleFrame;
+        layer.autoresizingMask = kCALayerWidthSizable | kCALayerHeightSizable;
+      }
+    }
+  });
 }
 
 - (void)screenLocked:(NSNotification *)note {
@@ -936,9 +928,11 @@ static void terminateWallpaperDaemonCallback(CFNotificationCenterRef center,
     NSError *error = nil;
 
     {
-      // Get display UUID using modern API (replaces deprecated CGDisplayIOServicePort)
+      // Get display UUID using modern API (replaces deprecated
+      // CGDisplayIOServicePort)
       std::string uuidString = DisplayUUIDFromID(
-          (CGDirectDisplayID)[_targetScreen.deviceDescription[@"NSScreenNumber"] unsignedIntValue]);
+          (CGDirectDisplayID)[_targetScreen.deviceDescription
+                                  [@"NSScreenNumber"] unsignedIntValue]);
 
       if (!uuidString.empty()) {
         NSString *uuid = [NSString stringWithUTF8String:uuidString.c_str()];
@@ -995,12 +989,12 @@ static void SpaceChangeCallback(CFNotificationCenterRef center, void *observer,
   }
 }
 
-
-static void scaleModeChangeCallback(CFNotificationCenterRef center, void *observer,
-                                CFStringRef name, const void *object,
-                                CFDictionaryRef userInfo) {
-    VideoWallpaperDaemon *daemon = (__bridge VideoWallpaperDaemon *)observer;
-    [daemon applyScalingMode];
+static void scaleModeChangeCallback(CFNotificationCenterRef center,
+                                    void *observer, CFStringRef name,
+                                    const void *object,
+                                    CFDictionaryRef userInfo) {
+  VideoWallpaperDaemon *daemon = (__bridge VideoWallpaperDaemon *)observer;
+  [daemon applyScalingMode];
 }
 static void AutoPauseChangedCallback(CFNotificationCenterRef center,
                                      void *observer, CFStringRef name,
@@ -1086,14 +1080,12 @@ int main(int argc, const char *argv[]) {
         (__bridge const void *)daemon, terminateWallpaperDaemonCallback,
         CFSTR("com.live.wallpaper.terminate"), NULL,
         CFNotificationSuspensionBehaviorDeliverImmediately);
-      
-      CFNotificationCenterAddObserver(
-          CFNotificationCenterGetDarwinNotifyCenter(),
-          (__bridge const void *)daemon, scaleModeChangeCallback,
-          CFSTR("com.live.wallpaper.scaleModeChanged"), NULL,
-          CFNotificationSuspensionBehaviorDeliverImmediately);
-      
-      
+
+    CFNotificationCenterAddObserver(
+        CFNotificationCenterGetDarwinNotifyCenter(),
+        (__bridge const void *)daemon, scaleModeChangeCallback,
+        CFSTR("com.live.wallpaper.scaleModeChanged"), NULL,
+        CFNotificationSuspensionBehaviorDeliverImmediately);
 
     [[NSRunLoop mainRunLoop] run];
   }

@@ -65,6 +65,9 @@ static NSString *folderPath = nil;
                                             DISPATCH_QUEUE_SERIAL);
 
     _wallpaperSemaphore = dispatch_semaphore_create(2);
+      _currentWallpaper = 0;
+      _wallpaperList = [NSMutableArray array];
+      
     ScanDisplays();
 
     [self killAllDaemons];
@@ -73,6 +76,21 @@ static NSString *folderPath = nil;
     displays = SaveSystem::Load();
 
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+      
+      _rotationType = (RotationType)[defaults integerForKey:@"rtype"];
+      
+      _rotationDelay = (int)[defaults integerForKey:@"rdelay"];
+      
+      if(_rotationType == 0){
+          _rotationType = RotationTypeSequential;
+      }
+      if(_rotationDelay < 50){
+          _rotationDelay = 60;
+      }
+      if([defaults boolForKey:@"rotation"]){
+          [self startWallpaperRotation];
+      }
+      
 
     for (Display display : displays) {
       CGDirectDisplayID displayID = DisplayIDFromUUID(display.uuid);
@@ -1077,6 +1095,91 @@ static NSString *folderPath = nil;
   return path;
 }
 
+- (void)checkWallpapers{
+    if(_wallpaperList.count > 0){
+        [_wallpaperList removeAllObjects];
+    }
+    
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    NSError *error = nil;
+    folderPath = [self getFolderPath];
+    NSArray<NSString *> *allFiles =
+        [fileManager contentsOfDirectoryAtPath:folderPath error:&error];
+
+    if (error) {
+      NSLog(@"Error reading directory: %@", error.localizedDescription);
+        NSLog(@"Wallaper List returns Empty");
+        return;
+      
+    }
+    
+    for (NSString *fileName in allFiles) {
+      NSString *fileExtension = [[fileName pathExtension] lowercaseString];
+
+      if ([fileExtension isEqualToString:@"mp4"] ||
+          [fileExtension isEqualToString:@"mov"]) {
+        NSString *fullPath = [folderPath stringByAppendingPathComponent:fileName];
+        [_wallpaperList addObject:fullPath];
+          NSLog(@"detected %@", fullPath);
+      }
+    }
+
+    if (_wallpaperList.count == 0) {
+        NSLog(@"Folder is empty, return zero for playlist");
+        return;
+    }
+    
+}
+
+-(void) nextWallpaper{
+    
+    if(_rotationType == 1){
+        if (_wallpaperList == nil || _wallpaperList.count == 0) {
+                NSLog(@"⚠️ Cannot rotate: wallpaperList is empty.");
+                [self stopWallpaperRotation];
+                return;
+            }
+        
+        _currentWallpaper = (_currentWallpaper + 1) % _wallpaperList.count;
+        for (Display display : displays) {
+
+          if (!display.videoPath.empty()) {
+            CGDirectDisplayID displayID = DisplayIDFromUUID(display.uuid);
+
+            [self startWallpaperWithPath:
+             _wallpaperList[_currentWallpaper]
+                              onDisplays:@[ @(displayID) ]];
+          }
+        }
+        
+    }else if(_rotationType == 2){
+        [self randomWallpapersLid];
+    }
+}
+- (void)stopWallpaperRotation {
+    [self.wallpaperTimer invalidate];
+    self.wallpaperTimer = nil;
+    NSLog(@"Wallpaper rotation stoped.");
+}
+- (void)startWallpaperRotation{
+    int delay = _rotationDelay;
+    [self stopWallpaperRotation];
+    [self checkWallpapers];
+    
+    if (_currentWallpaper >= _wallpaperList.count) {
+            _currentWallpaper = 0;
+        }
+
+    self.wallpaperTimer = [NSTimer scheduledTimerWithTimeInterval:(NSTimeInterval)delay
+                                                           target:self
+                                                         selector:@selector(nextWallpaper)
+                                                         userInfo:nil
+                                                          repeats:YES];
+    
+    [self.wallpaperTimer fire];
+    NSLog(@"Wallpaper rotation started with %d delay.", delay);
+}
+
 - (void)scanDisplays {
   ScanDisplays();
 }
@@ -1166,3 +1269,4 @@ CGImageRef CompressImageWithQuality(CGImageRef image, float qualityFactor) {
       [NSBitmapImageRep imageRepWithData:compressedData];
   return [compressedRep CGImage];
 }
+

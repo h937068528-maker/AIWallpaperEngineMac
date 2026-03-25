@@ -16,12 +16,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import SwiftUI
 import AVFoundation
-import UniformTypeIdentifiers
-import Combine
 import AppKit
-
+import Combine
+import SwiftUI
+import UniformTypeIdentifiers
 
 // MARK: - Compatibility Bridge
 struct VisualEffectView: NSViewRepresentable {
@@ -44,7 +43,9 @@ struct VisualEffectView: NSViewRepresentable {
 
 extension View {
     @ViewBuilder
-    func compatibleGlass(material: NSVisualEffectView.Material = .headerView, cornerRadius: CGFloat = 16) -> some View {
+    func compatibleGlass(
+        material: NSVisualEffectView.Material = .headerView, cornerRadius: CGFloat = 16
+    ) -> some View {
         if #available(macOS 20.0, *) {
             self.background(
                 VisualEffectView(material: material)
@@ -80,7 +81,7 @@ class LanguageManager: ObservableObject {
         [
             ("auto", "system_language".localized),
             ("zh-Hans", "简体中文"),
-            ("en", "English")
+            ("en", "English"),
         ]
     }
 
@@ -90,10 +91,14 @@ class LanguageManager: ObservableObject {
     }
 
     func localizedString(_ key: String) -> String {
-        let language = currentLanguage == "auto" ? Locale.preferredLanguages.first ?? "en" : currentLanguage
-        guard let path = Bundle.main.path(forResource: language, ofType: "lproj") ??
-                         Bundle.main.path(forResource: language.components(separatedBy: "-").first, ofType: "lproj"),
-              let bundle = Bundle(path: path) else {
+        let language =
+            currentLanguage == "auto" ? Locale.preferredLanguages.first ?? "en" : currentLanguage
+        guard
+            let path = Bundle.main.path(forResource: language, ofType: "lproj")
+                ?? Bundle.main.path(
+                    forResource: language.components(separatedBy: "-").first, ofType: "lproj"),
+            let bundle = Bundle(path: path)
+        else {
             return NSLocalizedString(key, comment: "")
         }
         return NSLocalizedString(key, tableName: nil, bundle: bundle, comment: "")
@@ -127,7 +132,12 @@ enum L {
     static let selectFolderTitle = NSLocalizedString("Select folder title", comment: "")
     static let choose = NSLocalizedString("Choose", comment: "")
     static let selectFolderOrType = NSLocalizedString("Select folder or type", comment: "")
-    static let vinttageBar = NSLocalizedString("Vintage bar(Reapply the wallpaper after change)", comment: "")
+    static let wallpaperRotation = NSLocalizedString("Wallpaper rotation", comment: "")
+    static let rotationType = NSLocalizedString("Wallpaper rotation type", comment: "")
+    static let vinttageBar = NSLocalizedString(
+        "Vignette bar(Reapply the wallpaper after change)", comment: "")
+
+    static let rotationDelay = NSLocalizedString("Wallpaper rotation delay", comment: "")
 }
 
 // MARK: - UserDefaults Keys
@@ -140,7 +150,11 @@ enum UserDefaultsKeys {
     static let volumePercentage = "wallpapervolumeprecentage"
     static let launchAtLogin = "LaunchAtLogin"
     static let appLanguage = "app_language"
-    static let vintageBar = "vinttage_bar"
+    static let vignetteBar = "vinttage_bar"
+    static let rotation = "rotation"
+    static let rdelay = "rdelay"
+    static let rtype = "rtype"
+
 }
 
 // MARK: - Main Content View
@@ -159,13 +173,20 @@ struct ContentView: View {
                 .padding(.horizontal).padding(.top, 24).padding(.bottom, 12)
 
             ZStack(alignment: .bottom) {
-                VideoGridView(videos: viewModel.videos, viewModel: viewModel, onVideoSelect: { video in
-                    viewModel.startWallpaper(video: video, displays: Array(displayManager.selectedDisplays))
-                })
+                VideoGridView(
+                    videos: viewModel.videos, viewModel: viewModel,
+                    onVideoSelect: { video in
+                        viewModel.startWallpaper(
+                            video: video, displays: Array(displayManager.selectedDisplays))
+                    }
+                )
                 .padding(.horizontal, 24).padding(.bottom, 24)
 
-                DisplayDockView(displays: displayManager.displays, selectedDisplays: $displayManager.selectedDisplays)
-                    .padding(.bottom, 20)
+                DisplayDockView(
+                    displays: displayManager.displays,
+                    selectedDisplays: $displayManager.selectedDisplays
+                )
+                .padding(.bottom, 20)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
@@ -183,7 +204,6 @@ struct ContentView: View {
         }
     }
 }
-
 
 // MARK: - Toolbar View
 struct ToolbarView: View {
@@ -271,7 +291,6 @@ struct VideoGridView: View {
     }
 }
 
-
 // MARK: - Video Thumbnail Button
 struct VideoThumbnailButton: View {
     let video: VideoItem
@@ -286,7 +305,7 @@ struct VideoThumbnailButton: View {
                 if let thumbnail = video.loadThumbnail() {
                     Image(nsImage: thumbnail)
                         .resizable()
-                        .aspectRatio(16/9, contentMode: .fill)
+                        .aspectRatio(16 / 9, contentMode: .fill)
                         .frame(height: 140)
                         .clipped()
                 } else {
@@ -346,11 +365,13 @@ class DisplayManager: ObservableObject {
     init() {
         sharedEngine?.scanDisplays()
         updateDisplays()
-        CGDisplayRegisterReconfigurationCallback(displayReconfigCallback, Unmanaged.passUnretained(self).toOpaque())
+        CGDisplayRegisterReconfigurationCallback(
+            displayReconfigCallback, Unmanaged.passUnretained(self).toOpaque())
     }
 
     deinit {
-        CGDisplayRemoveReconfigurationCallback(displayReconfigCallback, Unmanaged.passUnretained(self).toOpaque())
+        CGDisplayRemoveReconfigurationCallback(
+            displayReconfigCallback, Unmanaged.passUnretained(self).toOpaque())
     }
 
     func updateDisplays() {
@@ -361,7 +382,8 @@ class DisplayManager: ObservableObject {
     }
 }
 
-nonisolated(unsafe) private let displayReconfigCallback: CGDisplayReconfigurationCallBack = { display, flags, userInfo in
+nonisolated(unsafe) private let displayReconfigCallback: CGDisplayReconfigurationCallBack = {
+    display, flags, userInfo in
     guard let userInfo = userInfo else { return }
     let manager = Unmanaged<DisplayManager>.fromOpaque(userInfo).takeUnretainedValue()
     DispatchQueue.main.async {
@@ -369,7 +391,6 @@ nonisolated(unsafe) private let displayReconfigCallback: CGDisplayReconfiguratio
         manager.selectedDisplays.removeAll()
     }
 }
-
 
 // MARK: - Display Dock View
 struct DisplayDockView: View {
@@ -420,7 +441,8 @@ struct DisplayButton: View {
             .contentShape(Rectangle())
             .background {
                 if #available(macOS 26.0, *) {
-                    Color.clear.glassEffect(.regular.interactive(), in: .rect(cornerRadius: isSelected ? 26 : 20))
+                    Color.clear.glassEffect(
+                        .regular.interactive(), in: .rect(cornerRadius: isSelected ? 26 : 20))
                 } else {
                     VisualEffectView(material: isSelected ? .selection : .headerView)
                         .clipShape(RoundedRectangle(cornerRadius: isSelected ? 26 : 20))
@@ -428,17 +450,20 @@ struct DisplayButton: View {
             }
             .overlay {
                 if isSelected {
-                    RoundedRectangle(cornerRadius: 26, style: .continuous).stroke(Color.yellow, lineWidth: 2)
+                    RoundedRectangle(cornerRadius: 26, style: .continuous).stroke(
+                        Color.yellow, lineWidth: 2)
                 }
             }
         }
         .buttonStyle(.plain)
         .scaleEffect(isSelected ? 1.03 : 1.0)
-        .shadow(color: isSelected ? Color.yellow.opacity(0.45) : Color.black.opacity(0.15), radius: isSelected ? 20 : 10, y: 8)
+        .shadow(
+            color: isSelected ? Color.yellow.opacity(0.45) : Color.black.opacity(0.15),
+            radius: isSelected ? 20 : 10, y: 8
+        )
         .animation(.spring(response: 0.45, dampingFraction: 0.75), value: isSelected)
     }
 }
-
 
 // MARK: - Settings View
 struct SettingsView: View {
@@ -446,6 +471,7 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showFolderPicker = false
     @AppStorage(UserDefaultsKeys.scaleMode) var scaleMode: Int = 0
+    @State private var localMinutes: Int = 60
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -485,9 +511,7 @@ struct SettingsView: View {
 
                     // Scale Mode
                     SettingRow(title: L.videoScalingMode) {
-                        
 
-                            
                         Picker("", selection: $scaleMode) {
                             Text(L.scaleFill).tag(0)
                             Text(L.scaleFit).tag(1)
@@ -496,28 +520,33 @@ struct SettingsView: View {
                             Text(L.scaleHeightFill).tag(4)
                         }
                         .onChange(of: scaleMode) {
-                            
+
                             viewModel.engine.updateScaleMode(scaleMode)
                         }
-                            
+
                     }
 
                     Divider()
 
                     // Language Selection
                     SettingRow(title: NSLocalizedString("App language", comment: "")) {
-                        Picker("", selection: Binding(
-                            get: { LanguageManager.shared.currentLanguage },
-                            set: { newValue in
-                                LanguageManager.shared.currentLanguage = newValue
-                                let alert = NSAlert()
-                                alert.messageText = NSLocalizedString("language_changed_title", comment: "")
-                                alert.informativeText = NSLocalizedString("language_changed_message", comment: "")
-                                alert.alertStyle = .informational
-                                alert.addButton(withTitle: NSLocalizedString("ok", comment: ""))
-                                alert.runModal()
-                            }
-                        )) {
+                        Picker(
+                            "",
+                            selection: Binding(
+                                get: { LanguageManager.shared.currentLanguage },
+                                set: { newValue in
+                                    LanguageManager.shared.currentLanguage = newValue
+                                    let alert = NSAlert()
+                                    alert.messageText = NSLocalizedString(
+                                        "language_changed_title", comment: "")
+                                    alert.informativeText = NSLocalizedString(
+                                        "language_changed_message", comment: "")
+                                    alert.alertStyle = .informational
+                                    alert.addButton(withTitle: NSLocalizedString("ok", comment: ""))
+                                    alert.runModal()
+                                }
+                            )
+                        ) {
                             Text(NSLocalizedString("system_language", comment: "")).tag("auto")
                             Text("简体中文").tag("zh-Hans")
                             Text("English").tag("en")
@@ -530,40 +559,167 @@ struct SettingsView: View {
 
                     // Random Wallpaper on Startup
                     SettingRow(title: L.randomOnStartup) {
-                        Toggle("", isOn: Binding(
-                            get: { UserDefaults.standard.bool(forKey: UserDefaultsKeys.randomOnStartup) },
-                            set: { UserDefaults.standard.set($0, forKey: UserDefaultsKeys.randomOnStartup) }
-                        ))
+                        Toggle(
+                            "",
+                            isOn: Binding(
+                                get: {
+                                    UserDefaults.standard.bool(
+                                        forKey: UserDefaultsKeys.randomOnStartup)
+                                },
+                                set: {
+                                    UserDefaults.standard.set(
+                                        $0, forKey: UserDefaultsKeys.randomOnStartup)
+                                }
+                            )
+                        )
                         .toggleStyle(.switch)
                     }
 
                     // Random Wallpaper on Wakeup
                     SettingRow(title: L.randomOnLid) {
-                        Toggle("", isOn: Binding(
-                            get: { UserDefaults.standard.bool(forKey: UserDefaultsKeys.randomOnLid) },
-                            set: { UserDefaults.standard.set($0, forKey: UserDefaultsKeys.randomOnLid) }
-                        ))
+                        Toggle(
+                            "",
+                            isOn: Binding(
+                                get: {
+                                    UserDefaults.standard.bool(forKey: UserDefaultsKeys.randomOnLid)
+                                },
+                                set: {
+                                    UserDefaults.standard.set(
+                                        $0, forKey: UserDefaultsKeys.randomOnLid)
+                                }
+                            )
+                        )
                         .toggleStyle(.switch)
                     }
 
                     // Auto-Pause When App is Active
                     SettingRow(title: L.pauseWhenActive) {
-                        Toggle("", isOn: Binding(
-                            get: { UserDefaults.standard.bool(forKey: UserDefaultsKeys.pauseOnAppFocus) },
-                            set: { UserDefaults.standard.set($0, forKey: UserDefaultsKeys.pauseOnAppFocus) }
-                        ))
+                        Toggle(
+                            "",
+                            isOn: Binding(
+                                get: {
+                                    UserDefaults.standard.bool(
+                                        forKey: UserDefaultsKeys.pauseOnAppFocus)
+                                },
+                                set: {
+                                    UserDefaults.standard.set(
+                                        $0, forKey: UserDefaultsKeys.pauseOnAppFocus)
+                                }
+                            )
+                        )
                         .toggleStyle(.switch)
                     }
-                    
+
                     //Vinttage Bar
                     SettingRow(title: L.vinttageBar) {
-                        Toggle("", isOn: Binding(
-                            get: { UserDefaults.standard.bool(forKey: UserDefaultsKeys.vintageBar) },
-                            set: { UserDefaults.standard.set($0, forKey: UserDefaultsKeys.vintageBar) }
-                        ))
+                        Toggle(
+                            "",
+                            isOn: Binding(
+                                get: {
+                                    UserDefaults.standard.bool(forKey: UserDefaultsKeys.vignetteBar)
+                                },
+                                set: {
+                                    UserDefaults.standard.set(
+                                        $0, forKey: UserDefaultsKeys.vignetteBar)
+                                }
+                            )
+                        )
                         .toggleStyle(.switch)
                     }
+
+                    Divider()
+
+                    SettingRow(title: L.wallpaperRotation) {
+                        Toggle(
+                            "",
+                            isOn: Binding(
+                                get: {
+                                    UserDefaults.standard.bool(forKey: UserDefaultsKeys.rotation)
+                                },
+                                set: { newValue in
+                                    guard let engine = sharedEngine else { return }
+
+                                    engine.isrotationrunning = newValue
+                                    if newValue {
+
+                                        engine.startWallpaperRotation()
+
+                                    } else {
+                                        engine.stopWallpaperRotation()
+                                    }
+                                    UserDefaults.standard.set(
+                                        newValue, forKey: UserDefaultsKeys.rotation)
+                                }
+                            )
+                        ).toggleStyle(.switch)
+
+                    }
                     
+                    SettingRow(title: L.rotationDelay) {
+                        HStack(spacing: 8) {
+                            // 1. The Typeable Field
+                            TextField("", value: $localMinutes, format: .number)
+                                .textFieldStyle(.plain)
+                                .multilineTextAlignment(.trailing)
+                                .frame(width: 40)  // Keeps it compact
+                                .onSubmit {
+                                    // Ensure the typed value stays within your bounds
+                                    localMinutes = min(max(localMinutes, 1), 1440)
+                                }
+
+                            // 2. The Stepper (with an empty label)
+                            Stepper("", value: $localMinutes, in: 1...1440, step: 4)
+                                .labelsHidden()  // This hides the extra space Stepper usually takes
+                                .onChange(of: localMinutes) { newValue in
+                                    sharedEngine?.rotationDelay = Int32(newValue * 60)
+                                    UserDefaults.standard.set(
+                                        (newValue*60), forKey: UserDefaultsKeys.rdelay)
+                                    print("Delay updated to: \(sharedEngine?.rotationDelay ?? 0)")
+                                }
+
+                            // 3. The Formatted Unit
+                            Text(formatTime(localMinutes))
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .fixedSize()
+                        }
+
+                    }
+
+                    .onAppear {
+                        if let engine = sharedEngine {
+                            localMinutes = UserDefaults.standard.integer(forKey: UserDefaultsKeys.rdelay)/60
+                        }
+                    }
+
+                    if let engine = sharedEngine {
+                        SettingRow(title: L.rotationType) {
+                            Picker(
+                                "",
+                                selection: Binding(
+                                    get: { engine.rotationType },
+                                    set: { newValue in
+                                        engine.rotationType = newValue
+
+                                    }
+                                )
+                            ) {
+                                Text("Sequential").tag(RotationType.sequential)
+                                Text("Random").tag(RotationType.random)
+                            }
+                            .onChange(of: engine.rotationType) {
+                                if engine.rotationType == RotationType.sequential {
+                                    UserDefaults.standard.set(1, forKey: UserDefaultsKeys.rtype)
+                                } else {
+                                    UserDefaults.standard.set(2, forKey: UserDefaultsKeys.rtype)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .frame(width: 150)
+                        }
+                    } else {
+                        Text("Engine Loading...")  // Or EmptyView()
+                    }
 
                     Divider()
 
@@ -612,6 +768,14 @@ struct SettingsView: View {
         .frame(width: 600, height: 500)
         .background(.ultraThinMaterial)
         .compatibleGlass(cornerRadius: 1)
+    }
+    func formatTime(_ totalMinutes: Int) -> String {
+        let h = totalMinutes / 60
+        let m = totalMinutes % 60
+        if h > 0 {
+            return "\(h)h \(m)m"
+        }
+        return "\(m) min"
     }
 
     private func selectFolder() {
@@ -710,7 +874,8 @@ class ThumbnailCache: ObservableObject {
         }
 
         guard FileManager.default.fileExists(atPath: path),
-              let img = NSImage(contentsOfFile: path) else {
+            let img = NSImage(contentsOfFile: path)
+        else {
             return nil
         }
 
@@ -723,7 +888,6 @@ class ThumbnailCache: ObservableObject {
         lastUpdate = Date()
     }
 }
-
 
 // MARK: - Wallpaper View Model
 @MainActor
@@ -759,14 +923,16 @@ class WallpaperViewModel: ObservableObject {
         randomOnStartup = defaults.bool(forKey: UserDefaultsKeys.randomOnStartup)
         pauseOnAppFocus = defaults.bool(forKey: UserDefaultsKeys.pauseOnAppFocus)
         volume = Double(defaults.float(forKey: UserDefaultsKeys.volumePercentage))
-        vinttageBar = defaults.bool(forKey: UserDefaultsKeys.vintageBar)
+        vinttageBar = defaults.bool(forKey: UserDefaultsKeys.vignetteBar)
     }
 
     func reloadContent() {
         engine.checkFolderPath()
         ThumbnailCache.shared.clearCache()
 
-        guard let files = try? FileManager.default.contentsOfDirectory(atPath: folderPath) else { return }
+        guard let files = try? FileManager.default.contentsOfDirectory(atPath: folderPath) else {
+            return
+        }
 
         let videoFiles = files.filter { f in
             let e = (f as NSString).pathExtension.lowercased()
@@ -784,10 +950,14 @@ class WallpaperViewModel: ObservableObject {
             let newVideos: [VideoItem] = videoFiles.map { f in
                 let full = (self.folderPath as NSString).appendingPathComponent(f)
                 let base = (f as NSString).deletingPathExtension
-                let thumbPath = (self.engine.thumbnailCachePath() as NSString?)?.appendingPathComponent("\(base).png") ?? ""
+                let thumbPath =
+                    (self.engine.thumbnailCachePath() as NSString?)?.appendingPathComponent(
+                        "\(base).png") ?? ""
 
                 var item = VideoItem(filename: f, path: full, thumbnailPath: thumbPath)
-                self.engine.videoQualityBadge(for: URL(fileURLWithPath: full)) { badge in item.quality = badge }
+                self.engine.videoQualityBadge(for: URL(fileURLWithPath: full)) { badge in
+                    item.quality = badge
+                }
                 return item
             }
 
@@ -803,7 +973,9 @@ class WallpaperViewModel: ObservableObject {
 
                     let missingThumbnails = newVideos.filter { $0.loadThumbnail() == nil }
                     if !missingThumbnails.isEmpty {
-                        NSLog("Found \(missingThumbnails.count) videos without thumbnails, generating...")
+                        NSLog(
+                            "Found \(missingThumbnails.count) videos without thumbnails, generating..."
+                        )
                         self.engine.generateThumbnails()
                     }
                 }
@@ -839,14 +1011,14 @@ class WallpaperViewModel: ObservableObject {
     private func getDisplayName(for id: CGDirectDisplayID) -> String {
         for s in NSScreen.screens {
             if let n = s.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber,
-               n.uint32Value == id {
+                n.uint32Value == id
+            {
                 return s.localizedName
             }
         }
         return "Display \(id)"
     }
 }
-
 
 #Preview {
     ContentView()

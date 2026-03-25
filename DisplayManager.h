@@ -57,6 +57,9 @@ static inline NSString *displayNameForDisplayID(CGDirectDisplayID did) {
     });
     return name;
   }
+    
+    if(did == kCGDirectMainDisplay)
+        return @"Main Display";
 
   if (did == kCGNullDirectDisplay)
     return @"Display (unknown)";
@@ -242,6 +245,7 @@ static void SetWallpaperDisplay(pid_t daemon_PID, CGDirectDisplayID displayID,
                                 std::string videoPath, std::string framePath) {
 
   for (Display &display : displays) {
+      
     if (display.screen == displayID) {
 
       if (display.daemon) {
@@ -263,6 +267,8 @@ static void SetWallpaperDisplay(pid_t daemon_PID, CGDirectDisplayID displayID,
   newDisplay.daemon = daemon_PID;
   displays.push_back(newDisplay);
 }
+
+
 
 //static void waitForScreensReady(void (^completion)(void)) {
 //  __block int retries = 20; // ~1 second
