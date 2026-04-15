@@ -1,5 +1,3 @@
-> [!NOTE]
-> ## I’ll be Transforming Objective C++ UI's to SwiftUI. But the ```daemon``` won't change.
 
 # LiveWallpaper App for MacOS 14+
 
@@ -50,6 +48,12 @@ Click the "OpenInFinder" button and it'll open a folder, you can place wallpaper
 
 > https://github.com/user-attachments/assets/3d82e07d-b6b9-4a7d-b6de-5dd05dff3128
 
+## Bug reports
+
+Post bugs with result of following command.
+
+ `/Applications/LiveWallpaper.app/Contents/MacOS/LiveWallpaper` 
+
 ## Gallery
 
 > ![Application](./asset/application.png)
@@ -68,9 +72,6 @@ Click the "OpenInFinder" button and it'll open a folder, you can place wallpaper
 > ![p1](./asset/preformance1.png)
 > ![p2](./asset/preformance2.png)
 > ![p3](./asset/preformance3.png)
-> # Multiple Display Support
-
-> https://github.com/user-attachments/assets/9575873c-79e6-4eba-a7a5-9408b2cc4ed0
 
 
 <!-- ## Gallery
