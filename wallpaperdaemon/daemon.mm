@@ -45,6 +45,8 @@
 
 @property(nonatomic, assign) NSInteger scalingMode;
 @property(nonatomic, strong) NSString *framePath;
+@property(nonatomic, strong) NSString *videoPath;
+@property(nonatomic, strong) NSString *targetUUID;
 @property(nonatomic, weak) NSScreen *targetScreen;
 @property(nonatomic, strong) AVAsset *asset;
 @property(nonatomic, assign) CGFloat targetPlaybackRate;
@@ -58,16 +60,30 @@
 - (instancetype)initWithVideo:(NSString *)videoPath
                   frameOutput:(NSString *)framePath
                   scalingMode:(NSInteger)scalingMode
-                 targetScreen:(NSScreen *)targetScreen;
+                 targetScreen:(NSScreen *)targetScreen
+                  targetUUID:(NSString *)uuid;
 - (void)checkAndUpdatePlaybackState;
+- (void)handleDisplayReconfiguration;
+NSScreen *ScreenForDisplayID(CGDirectDisplayID displayID);
 @end
+
+static void DisplayReconfigCallback(CGDirectDisplayID display,
+                                     CGDisplayChangeSummaryFlags flags,
+                                     void *ctx) {
+  if (flags & kCGDisplayBeginConfigurationFlag) return;
+  VideoWallpaperDaemon *daemon = (__bridge VideoWallpaperDaemon *)ctx;
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [daemon handleDisplayReconfiguration];
+  });
+}
 
 @implementation VideoWallpaperDaemon
 
 - (instancetype)initWithVideo:(NSString *)videoPath
                   frameOutput:(NSString *)framePath
                   scalingMode:(NSInteger)scalingMode
-                 targetScreen:(NSScreen *)targetScreen {
+                 targetScreen:(NSScreen *)targetScreen
+                  targetUUID:(NSString *)uuid {
   self = [super init];
   if (self) {
     _windows = [NSMutableArray array];
@@ -75,14 +91,11 @@
     _playerLayers = [NSMutableArray array];
     _loopers = [NSMutableArray array];
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    //    if ([defaults objectForKey:@"pauseOnAppFocus"] == nil) {
-    //      [defaults setBool:YES forKey:@"pauseOnAppFocus"];
-    //      [defaults synchronize];
-    //    }
     _autoPauseEnabled = [defaults boolForKey:@"pauseOnAppFocus"];
     _wasPlayingBeforeSleep = YES;
     _scalingMode = scalingMode ?: 0;
     _framePath = framePath;
+    _videoPath = videoPath;
     _targetScreen = targetScreen;
     _targetPlaybackRate = 1.0f;
     _reducedPerformanceMode = NO;
@@ -91,12 +104,21 @@
     _targetDisplayID = screenNumber
                            ? (CGDirectDisplayID)screenNumber.unsignedIntValue
                            : kCGNullDirectDisplay;
+
+    if (uuid && uuid.length > 0) {
+      _targetUUID = uuid;
+    } else {
+      std::string uuidStr = DisplayUUIDFromID(_targetDisplayID);
+      _targetUUID = uuidStr.empty() ? nil : [NSString stringWithUTF8String:uuidStr.c_str()];
+    }
+
     _runningOnBattery = [self isRunningOnBatteryPower];
     _lowPowerModeEnabled = [self currentLowPowerModeState];
     _visibilityReductionActive = NO;
     _playbackPaused = NO;
 
-    // Observe screen lock/unlock
+    CGDisplayRegisterReconfigurationCallback(DisplayReconfigCallback, (__bridge void *)self);
+
     NSDistributedNotificationCenter *center =
         [NSDistributedNotificationCenter defaultCenter];
     [center addObserver:self
@@ -108,7 +130,6 @@
                    name:@"com.apple.screenIsUnlocked"
                  object:nil];
 
-    // Observe active application changes for auto-pause feature
     [[[NSWorkspace sharedWorkspace] notificationCenter]
         addObserver:self
            selector:@selector(activeApplicationChanged:)
@@ -136,7 +157,6 @@
     [[NSRunLoop mainRunLoop] addTimer:self.checkTimer
                               forMode:NSRunLoopCommonModes];
 
-    // Setup wallpaper with video
     [self setupWallpaperWithVideo:videoPath];
 
     [self updatePerformanceMode];
@@ -144,6 +164,42 @@
   }
   return self;
 }
+
+- (void)handleDisplayReconfiguration {
+  if (!_targetUUID) return;
+
+  CGDirectDisplayID newID = DisplayIDFromUUID(std::string([_targetUUID UTF8String]));
+  if (newID == kCGNullDirectDisplay) {
+    NSLog(@"[Daemon] Display UUID %@ not found after reconfiguration, waiting...", _targetUUID);
+    return;
+  }
+
+  NSScreen *newScreen = ScreenForDisplayID(newID);
+  if (!newScreen) {
+    NSLog(@"[Daemon] No NSScreen for display ID %u after reconfiguration", newID);
+    return;
+  }
+
+  if (newID == _targetDisplayID && newScreen == _targetScreen) return;
+
+  NSLog(@"[Daemon] Display reconfigured: ID %u → %u, re-attaching to UUID %@",
+        _targetDisplayID, newID, _targetUUID);
+
+  _targetDisplayID = newID;
+  _targetScreen = newScreen;
+
+  for (NSWindow *window in _windows) {
+    [window setReleasedWhenClosed:YES];
+    [window close];
+  }
+  [_windows removeAllObjects];
+  [_players removeAllObjects];
+  [_playerLayers removeAllObjects];
+  [_loopers removeAllObjects];
+
+  [self setupWallpaperWithVideo:_videoPath];
+}
+
 - (void)setupWallpaperWithVideo:(NSString *)videoPath {
 
   NSURL *videoURL = [NSURL fileURLWithPath:videoPath];
@@ -158,7 +214,6 @@
                                      screen:_targetScreen];
 
   window.level = kCGDesktopWindowLevel - 1;
-  // window.level = CGWindowLevelForKey(kCGDesktopWindowLevelKey - 1);
 
   [window setCollectionBehavior:NSWindowCollectionBehaviorCanJoinAllSpaces |
                                 NSWindowCollectionBehaviorFullScreenAuxiliary |
@@ -167,23 +222,17 @@
 
   [window setOpaque:NO];
   [window setBackgroundColor:[NSColor clearColor]];
-
   [window setHasShadow:NO];
   [window.contentView setWantsLayer:YES];
-
-  //[window orderFrontRegardless];
   [window setSharingType:NSWindowSharingNone];
-
   [window setIgnoresMouseEvents:YES];
 
   _asset = [AVAsset assetWithURL:videoURL];
-  // AVPlayerItem *item = [[AVPlayerItem alloc] initWithAsset:_asset];
   AVPlayerItem *item = nil;
   @try {
     item = [AVPlayerItem playerItemWithURL:videoURL];
   } @catch (NSException *e) {
     NSLog(@"[Daemon] AVPlayerItem init failed: %@, falling back", e.reason);
-
     item = [[AVPlayerItem alloc] initWithURL:videoURL];
   }
   AVQueuePlayer *player = [AVQueuePlayer queuePlayerWithItems:@[]];
@@ -196,27 +245,22 @@
   NSInteger _scalingMode = [defaults integerForKey:@"scale_mode"];
 
   switch (_scalingMode) {
-
-  case 1: // fit
+  case 1:
     layer.videoGravity = AVLayerVideoGravityResizeAspect;
     break;
-
-  case 2: // stretch
+  case 2:
     layer.videoGravity = AVLayerVideoGravityResize;
     break;
-
-  case 3: // center
+  case 3:
     layer.videoGravity = AVLayerVideoGravityResizeAspect;
     layer.anchorPoint = CGPointMake(0.5, 0.5);
     layer.position =
         CGPointMake(CGRectGetMidX(visibleFrame), CGRectGetMidY(visibleFrame));
     break;
-
-  case 0: // fill
-  case 4: // height-fill (same behavior for video)
+  case 0:
+  case 4:
     layer.videoGravity = AVLayerVideoGravityResizeAspectFill;
     break;
-
   default:
     layer.videoGravity = AVLayerVideoGravityResizeAspectFill;
     break;
@@ -232,7 +276,6 @@
   [window.contentView.layer addSublayer:layer];
 
   [window setFrame:visibleFrame display:YES];
-
   [window makeKeyAndOrderFront:nil];
 
   player.volume =
@@ -249,30 +292,22 @@
   [_loopers addObject:looper];
 
   if ([[NSUserDefaults standardUserDefaults] floatForKey:@"vinttage_bar"]) {
-
-    // Vignette Bar
-
     CALayer *overlayLayer = [CALayer layer];
     overlayLayer.frame = window.contentView.bounds;
     overlayLayer.zPosition = 100;
 
     CAGradientLayer *vignetteBar = [CAGradientLayer layer];
-
     CGFloat barHeight = 50.0;
     vignetteBar.frame =
         CGRectMake(0, window.contentView.bounds.size.height - barHeight,
                    window.contentView.bounds.size.width, barHeight);
-
     vignetteBar.colors = @[
       (id)[NSColor colorWithDeviceWhite:0.0 alpha:0.8].CGColor,
       (id)[NSColor colorWithDeviceWhite:0.0 alpha:0.1].CGColor
     ];
-
     vignetteBar.startPoint = CGPointMake(0.5, 1.0);
     vignetteBar.endPoint = CGPointMake(0.5, 0.15);
-
     vignetteBar.autoresizingMask = kCALayerWidthSizable | kCALayerMinYMargin;
-
     [overlayLayer addSublayer:vignetteBar];
     [window.contentView.layer addSublayer:overlayLayer];
   }
@@ -284,6 +319,7 @@
 
   [self setStaticWallpaper];
 }
+
 - (void)applyScalingMode {
   _scalingMode =
       [[NSUserDefaults standardUserDefaults] integerForKey:@"scale_mode"];
@@ -321,13 +357,10 @@
 }
 
 - (void)screenLocked:(NSNotification *)note {
-  // Save current playback state
   self.wasPlayingBeforeSleep = (_players.firstObject.rate > 0);
   NSLog(@"[Daemon] Screen locked - saving playback state: %@",
         self.wasPlayingBeforeSleep ? @"playing" : @"paused");
-
   self.screen_locked = true;
-
   for (AVQueuePlayer *player in _players) {
     [player pause];
   }
@@ -335,21 +368,20 @@
 
 - (void)screenUnlocked:(NSNotification *)note {
   NSLog(@"[Daemon] Screen unlocked");
-
   self.screen_locked = false;
-  // Resume if it was playing before sleep
   if (self.wasPlayingBeforeSleep) {
     NSLog(@"[Daemon] Resuming playback after screen unlock");
     [self resumeAllPlayers];
   }
-
   dispatch_after(
       dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)),
       dispatch_get_main_queue(), ^{
         [self checkAndUpdatePlaybackState];
       });
 }
+
 - (void)dealloc {
+  CGDisplayRemoveReconfigurationCallback(DisplayReconfigCallback, (__bridge void *)self);
 
   for (NSWindow *window in _windows) {
     [window setReleasedWhenClosed:YES];
@@ -375,6 +407,7 @@ static void terminateWallpaperDaemonCallback(CFNotificationCenterRef center,
 
 - (void)terminateWallpaperDaemon {
   NSLog(@"Received terminate notification");
+  CGDisplayRemoveReconfigurationCallback(DisplayReconfigCallback, (__bridge void *)self);
   for (NSWindow *window in _windows) {
     [window setReleasedWhenClosed:YES];
     [window close];
@@ -386,77 +419,11 @@ static void terminateWallpaperDaemonCallback(CFNotificationCenterRef center,
   exit(0);
 }
 
-// - (BOOL)shouldPlayWallpaper {
-//   // If auto-pause is disabled, always play
-
-//   NSRunningApplication *activeApp =
-//       [[NSWorkspace sharedWorkspace] frontmostApplication];
-
-//   // Check if Finder or our app is active - always play
-//   if ([activeApp.bundleIdentifier isEqualToString:@"com.apple.finder"] ||
-//       [activeApp.bundleIdentifier
-//           isEqualToString:@"com.thusvill.LiveWallpaper"]) {
-//     return YES;
-//   }
-
-//   // Check if the active app is hidden (Cmd+H)
-//   if (activeApp.isHidden) {
-//     return YES;
-//   }
-
-//   if (self.screen_locked) {
-//     return NO;
-//   }
-
-//   // Get all on-screen windows (this excludes minimized windows)
-//   CFArrayRef windowList = CGWindowListCopyWindowInfo(
-//       kCGWindowListOptionOnScreenOnly | kCGWindowListExcludeDesktopElements,
-//       kCGNullWindowID);
-//   BOOL hasVisibleAppWindow = NO;
-
-//   if (windowList) {
-//     NSArray *windows = (__bridge NSArray *)windowList;
-//     pid_t activePID = activeApp.processIdentifier;
-
-//     for (NSDictionary *window in windows) {
-//       NSNumber *ownerPID = window[(NSString *)kCGWindowOwnerPID];
-//       NSNumber *layer = window[(NSString *)kCGWindowLayer];
-
-//       // Check if this window belongs to the active app and is a normal
-//       window
-//       // (layer 0)
-//       if (ownerPID && [ownerPID intValue] == activePID && layer &&
-//           [layer intValue] == 0) {
-
-//         // Check if window has meaningful bounds
-//         NSDictionary *bounds = window[(NSString *)kCGWindowBounds];
-//         if (bounds) {
-//           CGRect rect;
-//           CGRectMakeWithDictionaryRepresentation(
-//               (__bridge CFDictionaryRef)bounds, &rect);
-
-//           // If window is reasonably sized, it's visible
-//           if (rect.size.width > 50 && rect.size.height > 50) {
-//             hasVisibleAppWindow = YES;
-//             break;
-//           }
-//         }
-//       }
-//     }
-//     CFRelease(windowList);
-//   }
-
-//   // Play if no visible windows from the active app
-//   return !hasVisibleAppWindow;
-// }
-
 - (void)checkAndUpdatePlaybackState {
   BOOL screenLocked = self.screen_locked || [self isScreenLocked];
   self.screen_locked = screenLocked;
 
-  BOOL wallpaperHidden =
-      NO; //[self isWallpaperHiddenOnTargetDisplay]; TODO: FIx this function
-          //(not detecting windows correctly)
+  BOOL wallpaperHidden = NO;
 
   BOOL shouldPause = screenLocked || wallpaperHidden;
 
@@ -487,10 +454,8 @@ static void terminateWallpaperDaemonCallback(CFNotificationCenterRef center,
 - (CGRect)targetDisplayBounds {
   if (self.targetScreen)
     return self.targetScreen.frame;
-
   if (self.targetDisplayID != kCGNullDirectDisplay)
     return CGDisplayBounds(self.targetDisplayID);
-
   NSScreen *fallback = [NSScreen mainScreen];
   return fallback ? fallback.frame : CGRectZero;
 }
@@ -545,7 +510,6 @@ static void terminateWallpaperDaemonCallback(CFNotificationCenterRef center,
   BOOL hidden = NO;
   pid_t selfPID = getpid();
   CFIndex count = CFArrayGetCount(windows);
-  BOOL sawObscuringWindow = NO;
 
   for (CFIndex i = 0; i < count; ++i) {
     NSDictionary *window =
@@ -608,7 +572,6 @@ static void terminateWallpaperDaemonCallback(CFNotificationCenterRef center,
     if (alpha > 0.2f &&
         (largeArea || (nearlyFullWidth && heightCoverage >= 0.75) ||
          (coverage >= 0.60f && nearlyFullHeight))) {
-      sawObscuringWindow = YES;
       hidden = YES;
       NSLog(@"[Visibility] treating owner=%@ name=%@ as covering the wallpaper",
             ownerName ?: @"<unknown>", windowName ?: @"<unnamed>");
@@ -771,40 +734,35 @@ static void terminateWallpaperDaemonCallback(CFNotificationCenterRef center,
     }
   }
 }
+
 - (BOOL)isScreenLocked {
   CFBooleanRef locked = (CFBooleanRef)CFPreferencesCopyAppValue(
       CFSTR("ScreenLocked"), CFSTR("com.apple.loginwindow"));
 
   BOOL isLocked = NO;
-
   if (locked && CFGetTypeID(locked) == CFBooleanGetTypeID()) {
     isLocked = (locked == kCFBooleanTrue);
   }
-
   if (locked)
     CFRelease(locked);
-
   return isLocked;
 }
 
 - (void)activeApplicationChanged:(NSNotification *)notification {
   if (self.screen_locked)
     return;
-
   [self checkAndUpdatePlaybackState];
 }
 
 - (void)activeSpaceChanged:(NSNotification *)notification {
   if (self.screen_locked)
     return;
-
   [self checkAndUpdatePlaybackState];
 }
 
 - (BOOL)isFrontmostAppAllowed {
   NSRunningApplication *front =
       [[NSWorkspace sharedWorkspace] frontmostApplication];
-
   if (!front)
     return YES;
 
@@ -821,7 +779,6 @@ static void terminateWallpaperDaemonCallback(CFNotificationCenterRef center,
 - (void)resumeAllPlayers {
   if (_players.count == 0)
     return;
-
   if (!self.playbackPaused)
     return;
 
@@ -847,7 +804,6 @@ static void terminateWallpaperDaemonCallback(CFNotificationCenterRef center,
 - (void)pauseAllPlayers {
   if (self.playbackPaused)
     return;
-
   for (AVQueuePlayer *player in _players) {
     [player pause];
   }
@@ -860,14 +816,7 @@ static void terminateWallpaperDaemonCallback(CFNotificationCenterRef center,
   [[NSUserDefaults standardUserDefaults] setBool:enabled
                                           forKey:@"pauseOnAppFocus"];
   [[NSUserDefaults standardUserDefaults] synchronize];
-
   NSLog(@"[Daemon] Auto-pause %@", enabled ? @"enabled" : @"disabled");
-
-  // // If disabled, ensure playback resumes
-  // if (enabled) {
-  //   // If enabled, immediately check current state
-  //   [self checkAndUpdatePlaybackState];
-  // }
   [self checkAndUpdatePlaybackState];
 }
 
@@ -879,6 +828,7 @@ static void terminateWallpaperDaemonCallback(CFNotificationCenterRef center,
   [[NSUserDefaults standardUserDefaults] setFloat:volume
                                            forKey:@"wallpapervolume"];
 }
+
 - (bool)setStaticWallpaper {
   @autoreleasepool {
     if (!_framePath)
@@ -928,8 +878,6 @@ static void terminateWallpaperDaemonCallback(CFNotificationCenterRef center,
     NSError *error = nil;
 
     {
-      // Get display UUID using modern API (replaces deprecated
-      // CGDisplayIOServicePort)
       std::string uuidString = DisplayUUIDFromID(
           (CGDirectDisplayID)[_targetScreen.deviceDescription
                                   [@"NSScreenNumber"] unsignedIntValue]);
@@ -937,7 +885,6 @@ static void terminateWallpaperDaemonCallback(CFNotificationCenterRef center,
       if (!uuidString.empty()) {
         NSString *uuid = [NSString stringWithUTF8String:uuidString.c_str()];
         if (uuid) {
-          // Build the desktop dictionary that macOS uses internally
           NSMutableDictionary *desktopSpec = [NSMutableDictionary dictionary];
           desktopSpec[@"ImageFilePath"] = _framePath;
           desktopSpec[@"ImageFileURL"] = [imageURL absoluteString];
@@ -949,7 +896,6 @@ static void terminateWallpaperDaemonCallback(CFNotificationCenterRef center,
             }
           };
 
-          // Write to com.apple.desktop preferences
           CFPreferencesSetAppValue((__bridge CFStringRef)uuid,
                                    (__bridge CFPropertyListRef)desktopSpec,
                                    CFSTR("com.apple.desktop"));
@@ -963,7 +909,6 @@ static void terminateWallpaperDaemonCallback(CFNotificationCenterRef center,
                                                 forScreen:_targetScreen
                                                   options:options
                                                     error:&error];
-
     return success;
   }
 }
@@ -996,6 +941,7 @@ static void scaleModeChangeCallback(CFNotificationCenterRef center,
   VideoWallpaperDaemon *daemon = (__bridge VideoWallpaperDaemon *)observer;
   [daemon applyScalingMode];
 }
+
 static void AutoPauseChangedCallback(CFNotificationCenterRef center,
                                      void *observer, CFStringRef name,
                                      const void *object,
@@ -1023,12 +969,11 @@ int main(int argc, const char *argv[]) {
   @autoreleasepool {
     [NSApplication sharedApplication];
     [NSApp setActivationPolicy:NSApplicationActivationPolicyAccessory];
-
     [NSApp finishLaunching];
 
     if (argc < 4) {
       NSLog(@"Usage: %s <video.mp4> <frame_output.png> <volume> <scale_mode> "
-            @"<display_id(optional)>",
+            @"<display_uuid(optional)>",
             argv[0]);
       return 1;
     }
@@ -1037,17 +982,20 @@ int main(int argc, const char *argv[]) {
     NSString *framePath = [NSString stringWithUTF8String:argv[2]];
     NSInteger scaleMode = (NSInteger)strtol(argv[4], NULL, 10);
     NSScreen *targetScreen = [NSScreen mainScreen];
+    NSString *targetUUID = nil;
+
     if (argc >= 6) {
-      NSString *displayIDStr = [NSString stringWithUTF8String:argv[5]];
-      CGDirectDisplayID displayID = (CGDirectDisplayID)[displayIDStr intValue];
-      targetScreen = ScreenForDisplayID(displayID);
-      if (targetScreen) {
-        NSLog(@"Targeting display ID %u on screen %@", displayID, targetScreen);
+      targetUUID = [NSString stringWithUTF8String:argv[5]];
+      CGDirectDisplayID displayID = DisplayIDFromUUID(std::string([targetUUID UTF8String]));
+      NSScreen *screen = ScreenForDisplayID(displayID);
+      if (screen) {
+        targetScreen = screen;
+        NSLog(@"Targeting UUID %@ → display ID %u", targetUUID, displayID);
       } else {
-        NSLog(@"Warning: No screen found for display ID %u. Using all screens.",
-              displayID);
+        NSLog(@"Warning: No screen found for UUID %@. Using main screen.", targetUUID);
       }
     }
+
     volume = atof(argv[3]);
     [[NSUserDefaults standardUserDefaults] setFloat:volume
                                              forKey:@"wallpapervolume"];
@@ -1056,7 +1004,8 @@ int main(int argc, const char *argv[]) {
         [[VideoWallpaperDaemon alloc] initWithVideo:videoPath
                                         frameOutput:framePath
                                         scalingMode:scaleMode
-                                       targetScreen:targetScreen];
+                                       targetScreen:targetScreen
+                                        targetUUID:targetUUID];
 
     CFNotificationCenterAddObserver(
         CFNotificationCenterGetDarwinNotifyCenter(),
@@ -1075,6 +1024,7 @@ int main(int argc, const char *argv[]) {
         (__bridge const void *)(daemon), SpaceChangeCallback,
         CFSTR("com.live.wallpaper.spaceChanged"), NULL,
         CFNotificationSuspensionBehaviorDeliverImmediately);
+
     CFNotificationCenterAddObserver(
         CFNotificationCenterGetDarwinNotifyCenter(),
         (__bridge const void *)daemon, terminateWallpaperDaemonCallback,

@@ -208,7 +208,20 @@ static NSString *folderPath = nil;
 }
 
 - (void)screensDidChange:(NSNotification *)note {
+
   NSLog(@"Screens changed");
+    ScanDisplays();
+    for (Display display : displays) {
+
+      if (!display.videoPath.empty()) {
+        CGDirectDisplayID displayID = DisplayIDFromUUID(display.uuid);
+
+        [self startWallpaperWithPath:_currentVideoPath
+                          onDisplays:@[ @(displayID) ]];
+      }
+    }
+    
+    
 }
 
 - (NSString *)thumbnailCachePath {
@@ -1015,8 +1028,9 @@ static NSString *folderPath = nil;
         unsignedIntValue];
     NSLog(@"Display ID changed to %u", displayID);
   }
+  
 
-  NSString *display = [NSString stringWithFormat:@"%u", displayID];
+    std::string display = DisplayUUIDFromID(displayID);
 
   const char *daemonPathC = [daemonPath UTF8String];
   const char *args[] = {daemonPathC,
@@ -1024,7 +1038,7 @@ static NSString *folderPath = nil;
                         [imagePath UTF8String],
                         [volumeStr UTF8String],
                         [scaleMode UTF8String],
-                        displayID ? [display UTF8String] : "",
+                        displayID ? display.c_str() : "",
                         NULL};
 
   pid_t pid;

@@ -517,10 +517,11 @@ struct SettingsView: View {
                                 .textFieldStyle(.roundedBorder)
                                 .frame(width: 200)
                             Button(action: selectFolder) {
-                                Image(systemName: "folder.fill")
+                                //Image(systemName: "folder.fill")
+                                Image("openfolder").resizable().frame(width: 23, height: 23)
                             }
                             Button(action: openInFinder) {
-                                Image(systemName: "finder")
+                                Image("folder").resizable().frame(width: 23, height: 23)
                             }
                             
                             
