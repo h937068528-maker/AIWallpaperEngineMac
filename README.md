@@ -1,4 +1,6 @@
 
+![Status: Paused](https://img.shields.io/badge/Project_Status-Paused_Until_Aug_2026-red?style=for-the-badge)
+
 # LiveWallpaper App for MacOS 14+
 
 **Languages:** English | [简体中文](README.zh-Hans.md)
