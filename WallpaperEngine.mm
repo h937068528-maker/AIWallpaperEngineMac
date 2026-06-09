@@ -30,7 +30,6 @@ namespace fs = std::filesystem;
 
 extern char **environ;
 
-#define THUMBNAIL_QUALITY_FACTOR 0.05f
 #define QUALITY_BADGE_FONT_SIZE 48.0f
 
 static NSString *folderPath = nil;
@@ -676,14 +675,10 @@ static NSString *folderPath = nil;
     return;
   }
 
-  // Configure render size properly
-  AVAssetTrack *track = videoTracks.firstObject;
-  CGSize naturalSize = track.naturalSize;
-  CGAffineTransform transform = track.preferredTransform;
-  CGSize renderSize = CGSizeApplyAffineTransform(naturalSize, transform);
-  generator.maximumSize =
-      CGSizeMake(fabs(renderSize.width * THUMBNAIL_QUALITY_FACTOR),
-                 fabs(renderSize.height * THUMBNAIL_QUALITY_FACTOR));
+  // Configure thumbnail size
+  NSScreen *screen = [NSScreen mainScreen];
+  CGFloat scale = screen ? screen.backingScaleFactor : 2.0;
+  generator.maximumSize = CGSizeMake(250 * scale, 140 * scale);
 
   Float64 midpoint = CMTimeGetSeconds(asset.duration) / 2.0;
   CMTime targetTime = CMTimeMakeWithSeconds(midpoint, asset.duration.timescale);
@@ -783,13 +778,7 @@ static NSString *folderPath = nil;
       return;
     }
 
-    NSDictionary *options = @{
-      (__bridge id)
-      kCGImageDestinationLossyCompressionQuality : @(THUMBNAIL_QUALITY_FACTOR)
-    };
-
-    CGImageDestinationAddImage(destination, safeImage,
-                               (__bridge CFDictionaryRef)options);
+    CGImageDestinationAddImage(destination, safeImage, NULL);
 
     if (!CGImageDestinationFinalize(destination)) {
       NSLog(@"Failed to write PNG thumbnail: %@", thumbName);
