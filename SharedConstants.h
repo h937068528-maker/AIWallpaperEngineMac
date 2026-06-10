@@ -19,7 +19,7 @@
 #ifndef SharedConstants_h
 #define SharedConstants_h
 
-static const double THUMBNAIL_WIDTH = 250.0;
-static const double THUMBNAIL_HEIGHT = 140.0;
+static const double THUMBNAIL_WIDTH = 300.0;
+static const double THUMBNAIL_HEIGHT = 168.0;
 
 #endif /* SharedConstants_h */
