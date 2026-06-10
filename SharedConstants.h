@@ -1,6 +1,6 @@
 /*
  * This file is part of LiveWallpaper – LiveWallpaper App for macOS.
- * Copyright (C) 2025 Bios thusvill
+ * Copyright (C) 2026 Bios thusvill
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,11 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LiveWallpaper_Bridging_Header_h
-#define LiveWallpaper_Bridging_Header_h
+#ifndef SharedConstants_h
+#define SharedConstants_h
 
-#import "WallpaperEngine.h"
-#import "DisplayObjc.h"
-#import "SharedConstants.h"
+static const double THUMBNAIL_WIDTH = 250.0;
+static const double THUMBNAIL_HEIGHT = 140.0;
 
-#endif /* LiveWallpaper_Bridging_Header_h */
+#endif /* SharedConstants_h */

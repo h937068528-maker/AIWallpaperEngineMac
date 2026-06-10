@@ -19,6 +19,7 @@
 #import "WallpaperEngine.h"
 #include "DisplayObjc.h"
 #include "SaveSystem.h"
+#include "SharedConstants.h"
 #import <CoreGraphics/CoreGraphics.h>
 #import <IOKit/graphics/IOGraphicsLib.h>
 #include <filesystem>
@@ -678,7 +679,7 @@ static NSString *folderPath = nil;
   // Configure thumbnail size
   NSScreen *screen = [NSScreen mainScreen];
   CGFloat scale = screen ? screen.backingScaleFactor : 2.0;
-  generator.maximumSize = CGSizeMake(250 * scale, 140 * scale);
+  generator.maximumSize = CGSizeMake(THUMBNAIL_WIDTH * scale, THUMBNAIL_HEIGHT * scale);
 
   Float64 midpoint = CMTimeGetSeconds(asset.duration) / 2.0;
   CMTime targetTime = CMTimeMakeWithSeconds(midpoint, asset.duration.timescale);
