@@ -271,7 +271,7 @@ struct VideoGridView: View {
     let viewModel: WallpaperViewModel
     let onVideoSelect: (VideoItem) -> Void
 
-    private let columns = [GridItem(.adaptive(minimum: 250, maximum: 250), spacing: 2)]
+    private let columns = [GridItem(.adaptive(minimum: THUMBNAIL_WIDTH, maximum: THUMBNAIL_WIDTH), spacing: 6)]
 
     var body: some View {
         ScrollView {
@@ -298,7 +298,7 @@ struct VideoGridView: View {
                 .buttonStyle(.borderedProminent)
                 .frame(maxWidth: .infinity, minHeight: 200)
             } else {
-                LazyVGrid(columns: columns, spacing: 2) {
+                LazyVGrid(columns: columns, spacing: 6) {
                     ForEach(videos) { video in
                         VideoThumbnailButton(video: video) {
                             onVideoSelect(video)
@@ -328,12 +328,12 @@ struct VideoThumbnailButton: View {
                     Image(nsImage: thumbnail)
                         .resizable()
                         .aspectRatio(16 / 9, contentMode: .fill)
-                        .frame(height: 140)
+                        .frame(height: THUMBNAIL_HEIGHT)
                         .clipped()
                 } else {
                     Rectangle()
                         .fill(Color.gray.opacity(0.3))
-                        .frame(height: 140)
+                        .frame(height: THUMBNAIL_HEIGHT)
                         .overlay {
                             VStack(spacing: 4) {
                                 ProgressView()
