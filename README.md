@@ -35,9 +35,7 @@ Run this: `git clone https://github.com/thusvill/LiveWallpaperMacOS.git && cd Li
 Click the "OpenInFinder" button and it'll open a folder, you can place wallpapers in it.
 
 > [!NOTE]
-> Make sure the folder selected doesn't include spaces.
->
-> No dots should be contained on the file name exept the dot for extension!
+> No dots should be contained in the file name, except the dot for extension!
 > 
 > ## Eg:
 > 

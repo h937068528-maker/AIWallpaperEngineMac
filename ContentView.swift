@@ -286,7 +286,7 @@ struct VideoGridView: View {
 
                     if panel.runModal() == .OK, let url = panel.url {
                         viewModel.folderPath = url.path
-                        sharedEngine?.selectFolder(url.path())
+                        sharedEngine?.selectFolder(url.path)
                         viewModel.reloadContent()
                     }
                 } label: {
@@ -811,7 +811,7 @@ struct SettingsView: View {
 
         if panel.runModal() == .OK, let url = panel.url {
             viewModel.folderPath = url.path
-            sharedEngine?.selectFolder(url.path())
+            sharedEngine?.selectFolder(url.path)
             viewModel.reloadContent()
         }
     }
