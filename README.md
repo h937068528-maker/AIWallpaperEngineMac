@@ -1,5 +1,5 @@
 
-![Status: Paused](https://img.shields.io/badge/Project_Status-Paused_Until_Aug_2026-red?style=for-the-badge)
+![Status: Paused](https://img.shields.io/badge/Project_Status-Paused_Until_End_Of_Aug_2026-red?style=for-the-badge)
 
 # LiveWallpaper App for MacOS 14+
 
@@ -19,7 +19,7 @@ Run this on terminal `brew tap thusvill/livewallpaper && brew install --cask liv
 - Xcode
 - Cmake
   
-Run this: `git clone https://github.com/thusvill/LiveWallpaperMacOS.git && cd LiveWallpaperMacOS && mkdir -p build && cd build && cmake .. && make -j$(sysctl -n hw.ncpu)`
+Run this: `git clone --single-branch --branch objectiveC https://github.com/thusvill/LiveWallpaperMacOS.git && cd LiveWallpaperMacOS && mkdir -p build && cd build && cmake .. && make -j$(sysctl -n hw.ncpu)`
 
 
 ## Guide for DMG Installation
