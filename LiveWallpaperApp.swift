@@ -40,6 +40,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var window: NSWindow!
     
     let engine = sharedEngine
+    @MainActor private lazy var coreEngine = AIWallpaperEngine.shared
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         
@@ -91,6 +92,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
     }
 
+    @MainActor
+    func applicationWillTerminate(_ notification: Notification) {
+        coreEngine.terminateApplication()
+    }
+
     // Show the config window
     @objc func showWindow() {
         window.makeKeyAndOrderFront(nil)
@@ -104,9 +110,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     // Quit the app completely
-    @objc func quit() {
+    @MainActor @objc func quit() {
         
-        engine?.terminateApplication()
+        coreEngine.terminateApplication()
         NSApp.terminate(nil)
     }
 }
@@ -136,4 +142,3 @@ func setLoginItem(enabled: Bool) {
         print("❌ Failed to update login items")
     }
 }
-

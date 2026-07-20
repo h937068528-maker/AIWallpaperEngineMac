@@ -56,6 +56,16 @@
 		04E057922EEAB43200F90A44 /* scanner.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04E057622EEAB43200F90A44 /* scanner.cpp */; };
 		04E057932EEAB43200F90A44 /* directives.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04E057452EEAB43200F90A44 /* directives.cpp */; };
 		04F816E02EEBE3FB00CFB473 /* DisplayObjc.mm in Sources */ = {isa = PBXBuildFile; fileRef = 04F816DF2EEBE3FB00CFB473 /* DisplayObjc.mm */; };
+		A10000010000000000000001 /* WallpaperEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000110000000000000001 /* WallpaperEngine.swift */; };
+		A10000020000000000000001 /* WallpaperSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000120000000000000001 /* WallpaperSession.swift */; };
+		A10000030000000000000001 /* WallpaperState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000130000000000000001 /* WallpaperState.swift */; };
+		A10000040000000000000001 /* DisplayManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000140000000000000001 /* DisplayManager.swift */; };
+		A10000050000000000000001 /* ScreenController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000150000000000000001 /* ScreenController.swift */; };
+		A10000060000000000000001 /* RendererProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000160000000000000001 /* RendererProtocol.swift */; };
+		A10000070000000000000001 /* RendererManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000170000000000000001 /* RendererManager.swift */; };
+		A10000080000000000000001 /* VideoRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000180000000000000001 /* VideoRenderer.swift */; };
+		A10000090000000000000001 /* VideoItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000190000000000000001 /* VideoItem.swift */; };
+		A100000A0000000000000001 /* WallpaperViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001A0000000000000001 /* WallpaperViewModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -78,7 +88,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		048ABDDC2F4C1652001393B0 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
+		048ABDDC2F4C1652001393B0 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = asset/AppIcon.icon; sourceTree = "<group>"; };
 		04E0070A2EEA738C00F90A44 /* LiveWallpaper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LiveWallpaper.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		04E055412EEA794C00F90A44 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		04E055432EEA795200F90A44 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
@@ -271,6 +281,16 @@
 		04E058962EEAB54E00F90A44 /* yaml-cpp.pc.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = "yaml-cpp.pc.in"; sourceTree = "<group>"; };
 		04F816DE2EEBE3FB00CFB473 /* DisplayObjc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DisplayObjc.h; sourceTree = SOURCE_ROOT; };
 		04F816DF2EEBE3FB00CFB473 /* DisplayObjc.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = DisplayObjc.mm; sourceTree = SOURCE_ROOT; };
+		A10000110000000000000001 /* WallpaperEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpaperEngine.swift; sourceTree = "<group>"; };
+		A10000120000000000000001 /* WallpaperSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpaperSession.swift; sourceTree = "<group>"; };
+		A10000130000000000000001 /* WallpaperState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpaperState.swift; sourceTree = "<group>"; };
+		A10000140000000000000001 /* DisplayManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisplayManager.swift; sourceTree = "<group>"; };
+		A10000150000000000000001 /* ScreenController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenController.swift; sourceTree = "<group>"; };
+		A10000160000000000000001 /* RendererProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RendererProtocol.swift; sourceTree = "<group>"; };
+		A10000170000000000000001 /* RendererManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RendererManager.swift; sourceTree = "<group>"; };
+		A10000180000000000000001 /* VideoRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoRenderer.swift; sourceTree = "<group>"; };
+		A10000190000000000000001 /* VideoItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoItem.swift; sourceTree = "<group>"; };
+		A100001A0000000000000001 /* WallpaperViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpaperViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -342,6 +362,10 @@
 		04E0565B2EEAB3DD00F90A44 /* LiveWallpaper */ = {
 			isa = PBXGroup;
 			children = (
+				A10000210000000000000001 /* Core */,
+				A10000220000000000000001 /* Display */,
+				A10000230000000000000001 /* Renderer */,
+				A10000240000000000000001 /* UI */,
 				04E0565D2EEAB3EE00F90A44 /* Assets.xcassets */,
 				04E0565F2EEAB3EE00F90A44 /* ContentView.swift */,
 				04E056612EEAB3EE00F90A44 /* DisplayManager.h */,
@@ -356,6 +380,60 @@
 				04E057732EEAB43200F90A44 /* src */,
 			);
 			path = LiveWallpaper;
+			sourceTree = "<group>";
+		};
+		A10000210000000000000001 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				A10000110000000000000001 /* WallpaperEngine.swift */,
+				A10000120000000000000001 /* WallpaperSession.swift */,
+				A10000130000000000000001 /* WallpaperState.swift */,
+			);
+			path = Core;
+			sourceTree = SOURCE_ROOT;
+		};
+		A10000220000000000000001 /* Display */ = {
+			isa = PBXGroup;
+			children = (
+				A10000140000000000000001 /* DisplayManager.swift */,
+				A10000150000000000000001 /* ScreenController.swift */,
+			);
+			path = Display;
+			sourceTree = SOURCE_ROOT;
+		};
+		A10000230000000000000001 /* Renderer */ = {
+			isa = PBXGroup;
+			children = (
+				A10000160000000000000001 /* RendererProtocol.swift */,
+				A10000170000000000000001 /* RendererManager.swift */,
+				A10000180000000000000001 /* VideoRenderer.swift */,
+			);
+			path = Renderer;
+			sourceTree = SOURCE_ROOT;
+		};
+		A10000240000000000000001 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				A10000250000000000000001 /* Models */,
+				A10000260000000000000001 /* ViewModels */,
+			);
+			path = UI;
+			sourceTree = SOURCE_ROOT;
+		};
+		A10000250000000000000001 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				A10000190000000000000001 /* VideoItem.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		A10000260000000000000001 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				A100001A0000000000000001 /* WallpaperViewModel.swift */,
+			);
+			path = ViewModels;
 			sourceTree = "<group>";
 		};
 		04E0573F2EEAB43200F90A44 /* contrib */ = {
@@ -715,6 +793,16 @@
 		04E007062EEA738C00F90A44 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
+				A10000010000000000000001 /* WallpaperEngine.swift in Sources */,
+				A10000020000000000000001 /* WallpaperSession.swift in Sources */,
+				A10000030000000000000001 /* WallpaperState.swift in Sources */,
+				A10000040000000000000001 /* DisplayManager.swift in Sources */,
+				A10000050000000000000001 /* ScreenController.swift in Sources */,
+				A10000060000000000000001 /* RendererProtocol.swift in Sources */,
+				A10000070000000000000001 /* RendererManager.swift in Sources */,
+				A10000080000000000000001 /* VideoRenderer.swift in Sources */,
+				A10000090000000000000001 /* VideoItem.swift in Sources */,
+				A100000A0000000000000001 /* WallpaperViewModel.swift in Sources */,
 				04E057742EEAB43200F90A44 /* emitterstate.cpp in Sources */,
 				04E057752EEAB43200F90A44 /* nodebuilder.cpp in Sources */,
 				04E057762EEAB43200F90A44 /* ostream_wrapper.cpp in Sources */,

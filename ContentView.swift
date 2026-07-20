@@ -201,7 +201,7 @@ struct ContentView: View {
             .onAppear {
                 viewModel.loadDisplays()
                 viewModel.reloadContent()
-                if !Self.didCloseOnLaunch, let engine = sharedEngine, !engine.isFirstLaunch() {
+                if !Self.didCloseOnLaunch, !AIWallpaperEngine.shared.isFirstLaunch() {
                     Self.didCloseOnLaunch = true
                     dismiss()
                 }
@@ -286,7 +286,7 @@ struct VideoGridView: View {
 
                     if panel.runModal() == .OK, let url = panel.url {
                         viewModel.folderPath = url.path
-                        sharedEngine?.selectFolder(url.path)
+                        AIWallpaperEngine.shared.selectFolder(url.path)
                         viewModel.reloadContent()
                     }
                 } label: {
@@ -380,7 +380,7 @@ struct QualityBadge: View {
 }
 
 // MARK: - Display Manager
-class DisplayManager: ObservableObject {
+class LegacyDisplayManager: ObservableObject {
     @Published var displays: [DisplayObjc] = []
     @Published var selectedDisplays: Set<UInt32> = []
 
@@ -388,12 +388,12 @@ class DisplayManager: ObservableObject {
         sharedEngine?.scanDisplays()
         updateDisplays()
         CGDisplayRegisterReconfigurationCallback(
-            displayReconfigCallback, Unmanaged.passUnretained(self).toOpaque())
+            legacyDisplayReconfigCallback, Unmanaged.passUnretained(self).toOpaque())
     }
 
     deinit {
         CGDisplayRemoveReconfigurationCallback(
-            displayReconfigCallback, Unmanaged.passUnretained(self).toOpaque())
+            legacyDisplayReconfigCallback, Unmanaged.passUnretained(self).toOpaque())
     }
 
     func updateDisplays() {
@@ -404,10 +404,10 @@ class DisplayManager: ObservableObject {
     }
 }
 
-nonisolated(unsafe) private let displayReconfigCallback: CGDisplayReconfigurationCallBack = {
+nonisolated(unsafe) private let legacyDisplayReconfigCallback: CGDisplayReconfigurationCallBack = {
     display, flags, userInfo in
     guard let userInfo = userInfo else { return }
-    let manager = Unmanaged<DisplayManager>.fromOpaque(userInfo).takeUnretainedValue()
+    let manager = Unmanaged<LegacyDisplayManager>.fromOpaque(userInfo).takeUnretainedValue()
     DispatchQueue.main.async {
         manager.updateDisplays()
         manager.selectedDisplays.removeAll()
@@ -658,9 +658,9 @@ struct SettingsView: View {
                                     UserDefaults.standard.bool(forKey: UserDefaultsKeys.rotation)
                                 },
                                 set: { newValue in
-                                    guard let engine = sharedEngine else { return }
+                                    let engine = viewModel.engine
 
-                                    engine.isrotationrunning = newValue
+                                    engine.isRotationRunning = newValue
                                     if newValue {
 
                                         engine.startWallpaperRotation()
@@ -692,10 +692,10 @@ struct SettingsView: View {
                             Stepper("", value: $localMinutes, in: 1...1440, step: 4)
                                 .labelsHidden()  // This hides the extra space Stepper usually takes
                                 .onChange(of: localMinutes) { newValue in
-                                    sharedEngine?.rotationDelay = Int32(newValue * 60)
+                                    viewModel.engine.rotationDelay = Int32(newValue * 60)
                                     UserDefaults.standard.set(
                                         (newValue * 60), forKey: UserDefaultsKeys.rdelay)
-                                    print("Delay updated to: \(sharedEngine?.rotationDelay ?? 0)")
+                                    print("Delay updated to: \(viewModel.engine.rotationDelay)")
                                 }
 
                             // 3. The Formatted Unit
@@ -708,39 +708,32 @@ struct SettingsView: View {
                     }
 
                     .onAppear {
-                        if let engine = sharedEngine {
-                            localMinutes =
-                                UserDefaults.standard.integer(forKey: UserDefaultsKeys.rdelay) / 60
-                        }
+                        localMinutes =
+                            UserDefaults.standard.integer(forKey: UserDefaultsKeys.rdelay) / 60
                     }
 
-                    if let engine = sharedEngine {
-                        SettingRow(title: L.rotationType) {
-                            Picker(
-                                "",
-                                selection: Binding(
-                                    get: { engine.rotationType },
-                                    set: { newValue in
-                                        engine.rotationType = newValue
-
-                                    }
-                                )
-                            ) {
-                                Text("Sequential").tag(RotationType.sequential)
-                                Text("Random").tag(RotationType.random)
-                            }
-                            .onChange(of: engine.rotationType) {
-                                if engine.rotationType == RotationType.sequential {
-                                    UserDefaults.standard.set(1, forKey: UserDefaultsKeys.rtype)
-                                } else {
-                                    UserDefaults.standard.set(2, forKey: UserDefaultsKeys.rtype)
+                    SettingRow(title: L.rotationType) {
+                        Picker(
+                            "",
+                            selection: Binding(
+                                get: { viewModel.engine.rotationType },
+                                set: { newValue in
+                                    viewModel.engine.rotationType = newValue
                                 }
-                            }
-                            .pickerStyle(.menu)
-                            .frame(width: 150)
+                            )
+                        ) {
+                            Text("Sequential").tag(RotationType.sequential)
+                            Text("Random").tag(RotationType.random)
                         }
-                    } else {
-                        Text("Engine Loading...")  // Or EmptyView()
+                        .onChange(of: viewModel.engine.rotationType) {
+                            if viewModel.engine.rotationType == RotationType.sequential {
+                                UserDefaults.standard.set(1, forKey: UserDefaultsKeys.rtype)
+                            } else {
+                                UserDefaults.standard.set(2, forKey: UserDefaultsKeys.rtype)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .frame(width: 150)
                     }
 
                     Divider()
@@ -751,7 +744,7 @@ struct SettingsView: View {
                             Slider(value: $viewModel.volume, in: 0...100, step: 1)
                                 .frame(width: 200)
                                 .onChange(of: viewModel.volume) { newValue in
-                                    sharedEngine?.updateVolume(newValue)
+                                    viewModel.engine.updateVolume(newValue)
                                 }
                             Text("\(Int(viewModel.volume))%")
                                 .frame(width: 60, alignment: .leading)
@@ -811,7 +804,7 @@ struct SettingsView: View {
 
         if panel.runModal() == .OK, let url = panel.url {
             viewModel.folderPath = url.path
-            sharedEngine?.selectFolder(url.path)
+            viewModel.engine.selectFolder(url.path)
             viewModel.reloadContent()
         }
     }
@@ -835,211 +828,6 @@ struct SettingRow<Content: View>: View {
             content
             Spacer()
         }
-    }
-}
-
-// MARK: - Video Item
-struct VideoItem: Identifiable {
-    let id = UUID()
-    let filename: String
-    let path: String
-    let thumbnailPath: String
-    var quality: String?
-
-    func loadThumbnail() -> NSImage? {
-        return ThumbnailCache.shared.image(for: thumbnailPath)
-    }
-}
-
-// MARK: - Thumbnail Cache
-class ThumbnailCache: ObservableObject {
-    static let shared = ThumbnailCache()
-    private let cache = NSCache<NSString, NSImage>()
-    @Published var lastUpdate = Date()
-
-    private init() {
-        cache.countLimit = 100
-
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(thumbnailSaved(_:)),
-            name: NSNotification.Name("ThumbnailSaved"),
-            object: nil
-        )
-
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(thumbnailsGenerated),
-            name: NSNotification.Name("ThumbnailsGenerated"),
-            object: nil
-        )
-    }
-
-    @objc private func thumbnailSaved(_ notification: Notification) {
-        if let path = notification.userInfo?["path"] as? String {
-            cache.removeObject(forKey: path as NSString)
-        }
-        DispatchQueue.main.async {
-            self.lastUpdate = Date()
-        }
-    }
-
-    @objc private func thumbnailsGenerated() {
-        cache.removeAllObjects()
-        DispatchQueue.main.async {
-            self.lastUpdate = Date()
-        }
-    }
-
-    func image(for path: String) -> NSImage? {
-        if let cached = cache.object(forKey: path as NSString) {
-            return cached
-        }
-
-        guard FileManager.default.fileExists(atPath: path),
-            let img = NSImage(contentsOfFile: path)
-        else {
-            return nil
-        }
-
-        cache.setObject(img, forKey: path as NSString)
-        return img
-    }
-
-    func clearCache() {
-        cache.removeAllObjects()
-        lastUpdate = Date()
-    }
-}
-
-// MARK: - Wallpaper View Model
-@MainActor
-class WallpaperViewModel: ObservableObject {
-
-    @Published var videos: [VideoItem] = []
-    @Published var displays: [DisplayObjc] = []
-    @Published var folderPath: String = ""
-    @Published var scaleMode: String = "fill"
-    @Published var randomOnStartup: Bool = false
-    @Published var pauseOnAppFocus: Bool = true
-    @Published var volume: Double = 50.0
-    @Published var vinttageBar: Bool = true
-
-    private var currentReloadID = UUID()
-    private let reloadIDLock = NSLock()
-    private let defaults = UserDefaults.standard
-    let engine: WallpaperEngine
-
-    init(engine: WallpaperEngine = sharedEngine ?? WallpaperEngine.shared()) {
-        self.engine = engine
-        loadSettings()
-        self.engine.setupNotifications()
-    }
-
-    func invalidate() {
-        engine.removeNotifications()
-    }
-
-    func loadSettings() {
-        folderPath = engine.getFolderPath()
-        scaleMode = defaults.string(forKey: UserDefaultsKeys.scaleMode) ?? "fill"
-        randomOnStartup = defaults.bool(forKey: UserDefaultsKeys.randomOnStartup)
-        pauseOnAppFocus = defaults.bool(forKey: UserDefaultsKeys.pauseOnAppFocus)
-        volume = Double(defaults.float(forKey: UserDefaultsKeys.volumePercentage))
-        vinttageBar = defaults.bool(forKey: UserDefaultsKeys.vignetteBar)
-    }
-
-    func reloadContent() {
-        engine.checkFolderPath()
-        ThumbnailCache.shared.clearCache()
-
-        guard let files = try? FileManager.default.contentsOfDirectory(atPath: folderPath) else {
-            return
-        }
-
-        let videoFiles = files.filter { f in
-            let e = (f as NSString).pathExtension.lowercased()
-            return e == "mp4" || e == "mov"
-        }
-
-        let reloadID = UUID()
-        reloadIDLock.lock()
-        currentReloadID = reloadID
-        reloadIDLock.unlock()
-
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            guard let self = self else { return }
-
-            let newVideos: [VideoItem] = videoFiles.map { f in
-                let full = (self.folderPath as NSString).appendingPathComponent(f)
-                let base = (f as NSString).deletingPathExtension
-                let thumbPath =
-                    (self.engine.thumbnailCachePath() as NSString?)?.appendingPathComponent(
-                        "\(base).png") ?? ""
-
-                var item = VideoItem(filename: f, path: full, thumbnailPath: thumbPath)
-                self.engine.videoQualityBadge(for: URL(fileURLWithPath: full)) { badge in
-                    item.quality = badge
-                }
-                return item
-            }
-
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-
-                self.reloadIDLock.lock()
-                let isValid = reloadID == self.currentReloadID
-                self.reloadIDLock.unlock()
-
-                if isValid {
-                    self.videos = newVideos
-
-                    let missingThumbnails = newVideos.filter { $0.loadThumbnail() == nil }
-                    if !missingThumbnails.isEmpty {
-                        NSLog(
-                            "Found \(missingThumbnails.count) videos without thumbnails, generating..."
-                        )
-                        self.engine.generateThumbnails()
-                    }
-                }
-            }
-        }
-    }
-
-    func loadDisplays() {
-        displays = sharedEngine?.getDisplays() as? [DisplayObjc] ?? []
-    }
-
-    func startWallpaper(video: VideoItem, displays: [UInt32]) {
-        let arr = displays.map { NSNumber(value: $0) }
-        engine.startWallpaper(withPath: video.path, onDisplays: arr)
-    }
-
-    func clearCache() {
-        engine.clearCache()
-        ThumbnailCache.shared.clearCache()
-        reloadContent()
-    }
-
-    func resetUserData() {
-        engine.resetUserData()
-        loadSettings()
-        reloadContent()
-    }
-
-    func optimizeVideos() {
-        engine.generateStaticWallpapers(forFolder: folderPath) {}
-    }
-
-    private func getDisplayName(for id: CGDirectDisplayID) -> String {
-        for s in NSScreen.screens {
-            if let n = s.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber,
-                n.uint32Value == id
-            {
-                return s.localizedName
-            }
-        }
-        return "Display \(id)"
     }
 }
 
