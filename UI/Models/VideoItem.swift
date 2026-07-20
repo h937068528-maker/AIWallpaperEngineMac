@@ -32,7 +32,7 @@ final class ThumbnailCache: ObservableObject {
         )
         NotificationCenter.default.addObserver(
             self,
-            selector: #selector(thumbnailsGenerated),
+            selector: #selector(thumbnailsGenerated(_:)),
             name: NSNotification.Name("ThumbnailsGenerated"),
             object: nil
         )
@@ -47,7 +47,7 @@ final class ThumbnailCache: ObservableObject {
         }
     }
 
-    @objc private func thumbnailsGenerated() {
+    @objc private func thumbnailsGenerated(_ notification: Notification) {
         cache.removeAllObjects()
         DispatchQueue.main.async {
             self.lastUpdate = Date()

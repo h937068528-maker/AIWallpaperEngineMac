@@ -42,6 +42,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let engine = sharedEngine
     @MainActor private lazy var coreEngine = AIWallpaperEngine.shared
 
+    private var applicationDisplayName: String {
+        (Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String)
+            ?? (Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String)
+            ?? "LiveWallpaper"
+    }
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         
         NSApp.setActivationPolicy(.accessory)
@@ -75,7 +81,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         window.center()
         window.contentView = NSHostingView(rootView: ContentView())
-        window.title = "LiveWallpaper"
+        window.title = applicationDisplayName
         window.isReleasedWhenClosed = false
         window.makeKeyAndOrderFront(nil)
         

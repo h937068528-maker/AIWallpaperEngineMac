@@ -87,7 +87,11 @@ final class WallpaperViewModel: ObservableObject {
                 self.loadQualityBadges(for: newVideos)
 
                 if newVideos.contains(where: { $0.loadThumbnail() == nil }) {
-                    self.engine.generateThumbnails()
+                    self.engine.generateThumbnails(forFolder: sourceFolder) {
+                        DispatchQueue.main.async {
+                            ThumbnailCache.shared.clearCache()
+                        }
+                    }
                 }
             }
         }

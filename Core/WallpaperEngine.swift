@@ -94,6 +94,13 @@ final class AIWallpaperEngine: ObservableObject {
         legacyEngine.generateThumbnails()
     }
 
+    func generateThumbnails(
+        forFolder folderPath: String,
+        completion: @escaping @Sendable () -> Void
+    ) {
+        legacyEngine.generateThumbnails(forFolder: folderPath, withCompletion: completion)
+    }
+
     func videoQualityBadge(for url: URL, completion: @escaping @Sendable (String?) -> Void) {
         legacyEngine.videoQualityBadge(for: url, completion: completion)
     }
