@@ -1,0 +1,7 @@
+// Local branded build profile for the AIWallpaperEngineMac application.
+// Replace the bundle identifier with the production App ID before distribution.
+
+PRODUCT_BUNDLE_IDENTIFIER = com.aiwallpaperengine.mac
+INFOPLIST_KEY_CFBundleDisplayName = AIWallpaperEngineMac
+INFOPLIST_KEY_CFBundleName = AIWallpaperEngineMac
+
