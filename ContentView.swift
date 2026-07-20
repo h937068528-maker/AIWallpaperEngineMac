@@ -61,7 +61,7 @@ extension View {
 // MARK: - String Localization Extension
 extension String {
     var localized: String {
-        return NSLocalizedString(self, comment: "")
+        LanguageManager.shared.localizedString(self)
     }
 }
 
@@ -72,7 +72,11 @@ class LanguageManager: ObservableObject {
     @Published var currentLanguage: String {
         didSet {
             UserDefaults.standard.set(currentLanguage, forKey: UserDefaultsKeys.appLanguage)
-            UserDefaults.standard.set([currentLanguage], forKey: "AppleLanguages")
+            if currentLanguage == "auto" {
+                UserDefaults.standard.removeObject(forKey: "AppleLanguages")
+            } else {
+                UserDefaults.standard.set([currentLanguage], forKey: "AppleLanguages")
+            }
             UserDefaults.standard.synchronize()
         }
     }
@@ -92,7 +96,9 @@ class LanguageManager: ObservableObject {
 
     func localizedString(_ key: String) -> String {
         let language =
-            currentLanguage == "auto" ? Locale.preferredLanguages.first ?? "en" : currentLanguage
+            currentLanguage == "auto"
+            ? Bundle.main.preferredLocalizations.first ?? "en"
+            : currentLanguage
         guard
             let path = Bundle.main.path(forResource: language, ofType: "lproj")
                 ?? Bundle.main.path(
@@ -107,37 +113,51 @@ class LanguageManager: ObservableObject {
 
 // MARK: - Localization
 enum L {
-    static let selectWallpaperFolder = NSLocalizedString("📁", comment: "")
-    static let generating = NSLocalizedString("Generating...", comment: "")
-    static let settings = NSLocalizedString("Settings", comment: "")
-    static let wallpaperFolder = NSLocalizedString("Wallpaper folder", comment: "")
-    static let selectFolderEmoji = NSLocalizedString("📁", comment: "")
-    static let showInFinder = NSLocalizedString("📂", comment: "")
-    static let videoScalingMode = NSLocalizedString("Video scaling mode", comment: "")
-    static let scaleFill = NSLocalizedString("Scale fill", comment: "")
-    static let scaleFit = NSLocalizedString("Scale fit", comment: "")
-    static let scaleStretch = NSLocalizedString("Scale stretch", comment: "")
-    static let scaleCenter = NSLocalizedString("Scale center", comment: "")
-    static let scaleHeightFill = NSLocalizedString("Scale height fill", comment: "")
-    static let randomOnStartup = NSLocalizedString("Random on startup", comment: "")
-    static let randomOnLid = NSLocalizedString("Random on lid", comment: "")
-    static let pauseWhenActive = NSLocalizedString("Pause when active", comment: "")
-    static let videoVolume = NSLocalizedString("Video volume", comment: "")
-    static let optimizeCodecs = NSLocalizedString("Optimize codecs", comment: "")
-    static let optimize = NSLocalizedString("Optimize", comment: "")
-    static let clearCache = NSLocalizedString("Clear cache", comment: "")
-    static let clearCacheButton = NSLocalizedString("Clear cache", comment: "")
-    static let resetUserData = NSLocalizedString("Reset userdata", comment: "")
-    static let reset = NSLocalizedString("Reset", comment: "")
-    static let selectFolderTitle = NSLocalizedString("Select folder title", comment: "")
-    static let choose = NSLocalizedString("Choose", comment: "")
-    static let selectFolderOrType = NSLocalizedString("Select folder or type", comment: "")
-    static let wallpaperRotation = NSLocalizedString("Wallpaper rotation", comment: "")
-    static let rotationType = NSLocalizedString("Wallpaper rotation type", comment: "")
-    static let vinttageBar = NSLocalizedString(
-        "Vignette bar (Reapply the wallpaper after change)", comment: "")
+    private static func text(_ key: String) -> String {
+        LanguageManager.shared.localizedString(key)
+    }
 
-    static let rotationDelay = NSLocalizedString("Wallpaper rotation delay", comment: "")
+    static var selectWallpaperFolder: String { text("select_wallpaper_folder") }
+    static var generating: String { text("generating") }
+    static var reload: String { text("reload") }
+    static var settings: String { text("settings") }
+    static var wallpaperFolder: String { text("wallpaper_folder") }
+    static var selectFolder: String { text("select_folder") }
+    static var showInFinder: String { text("show_in_finder") }
+    static var videoScalingMode: String { text("video_scaling_mode") }
+    static var scaleFill: String { text("scale_fill") }
+    static var scaleFit: String { text("scale_fit") }
+    static var scaleStretch: String { text("scale_stretch") }
+    static var scaleCenter: String { text("scale_center") }
+    static var scaleHeightFill: String { text("scale_height_fill") }
+    static var appLanguage: String { text("app_language") }
+    static var systemLanguage: String { text("system_language") }
+    static var languageChangedTitle: String { text("language_changed_title") }
+    static var languageChangedMessage: String { text("language_changed_message") }
+    static var ok: String { text("ok") }
+    static var randomOnStartup: String { text("random_on_startup") }
+    static var randomOnLid: String { text("random_on_lid") }
+    static var pauseWhenActive: String { text("pause_when_active") }
+    static var vignetteBar: String { text("vignette_bar") }
+    static var wallpaperRotation: String { text("wallpaper_rotation") }
+    static var rotationDelay: String { text("wallpaper_rotation_delay") }
+    static var rotationType: String { text("wallpaper_rotation_type") }
+    static var rotationSequential: String { text("rotation_sequential") }
+    static var rotationRandom: String { text("rotation_random") }
+    static var timeHoursMinutes: String { text("time_hours_minutes") }
+    static var timeMinutes: String { text("time_minutes") }
+    static var videoVolume: String { text("video_volume") }
+    static var optimizeCodecs: String { text("optimize_codecs") }
+    static var optimize: String { text("optimize") }
+    static var clearCache: String { text("clear_cache") }
+    static var resetUserData: String { text("reset_user_data") }
+    static var reset: String { text("reset") }
+    static var selectFolderTitle: String { text("select_folder_title") }
+    static var choose: String { text("choose") }
+    static var selectFolderOrType: String { text("select_folder_or_type") }
+    static var showWindow: String { text("show_window") }
+    static var hideWindow: String { text("hide_window") }
+    static var quit: String { text("quit") }
 }
 
 // MARK: - UserDefaults Keys
@@ -242,11 +262,15 @@ struct ToolbarView: View {
                         .font(.system(size: 16))
                 }
                 .buttonStyle(.glass)
+                .help(L.reload)
+                .accessibilityLabel(L.reload)
             } else {
                 Button(action: onReload) {
                     Image(systemName: "arrow.clockwise")
                         .font(.system(size: 16))
                 }
+                .help(L.reload)
+                .accessibilityLabel(L.reload)
             }
 
             if #available(macOS 26.0, *) {
@@ -255,11 +279,15 @@ struct ToolbarView: View {
                         .font(.system(size: 16))
                 }
                 .buttonStyle(.glass)
+                .help(L.settings)
+                .accessibilityLabel(L.settings)
             } else {
                 Button(action: { showSettings = true }) {
                     Image(systemName: "gear")
                         .font(.system(size: 16))
                 }
+                .help(L.settings)
+                .accessibilityLabel(L.settings)
             }
         }
     }
@@ -495,6 +523,7 @@ struct SettingsView: View {
     @AppStorage(UserDefaultsKeys.scaleMode) var scaleMode: Int = 0
     @State private var localMinutes: Int = 60
     @State private var isShowingView = true
+    @ObservedObject private var languageManager = LanguageManager.shared
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -520,9 +549,13 @@ struct SettingsView: View {
                                 //Image(systemName: "folder.fill")
                                 Image("openfolder").resizable().frame(width: 23, height: 23)
                             }
+                            .help(L.selectFolder)
+                            .accessibilityLabel(L.selectFolder)
                             Button(action: openInFinder) {
                                 Image("folder").resizable().frame(width: 23, height: 23)
                             }
+                            .help(L.showInFinder)
+                            .accessibilityLabel(L.showInFinder)
                             
                             
                         }
@@ -550,25 +583,23 @@ struct SettingsView: View {
                     Divider()
 
                     // Language Selection
-                    SettingRow(title: NSLocalizedString("App language", comment: "")) {
+                    SettingRow(title: L.appLanguage) {
                         Picker(
                             "",
                             selection: Binding(
-                                get: { LanguageManager.shared.currentLanguage },
+                                get: { languageManager.currentLanguage },
                                 set: { newValue in
-                                    LanguageManager.shared.currentLanguage = newValue
+                                    languageManager.currentLanguage = newValue
                                     let alert = NSAlert()
-                                    alert.messageText = NSLocalizedString(
-                                        "language_changed_title", comment: "")
-                                    alert.informativeText = NSLocalizedString(
-                                        "language_changed_message", comment: "")
+                                    alert.messageText = L.languageChangedTitle
+                                    alert.informativeText = L.languageChangedMessage
                                     alert.alertStyle = .informational
-                                    alert.addButton(withTitle: NSLocalizedString("ok", comment: ""))
+                                    alert.addButton(withTitle: L.ok)
                                     alert.runModal()
                                 }
                             )
                         ) {
-                            Text(NSLocalizedString("system_language", comment: "")).tag("auto")
+                            Text(L.systemLanguage).tag("auto")
                             Text("简体中文").tag("zh-Hans")
                             Text("English").tag("en")
                         }
@@ -632,7 +663,7 @@ struct SettingsView: View {
                     }
 
                     //Vinttage Bar
-                    SettingRow(title: L.vinttageBar) {
+                    SettingRow(title: L.vignetteBar) {
                         Toggle(
                             "",
                             isOn: Binding(
@@ -722,8 +753,8 @@ struct SettingsView: View {
                                 }
                             )
                         ) {
-                            Text("Sequential").tag(RotationType.sequential)
-                            Text("Random").tag(RotationType.random)
+                            Text(L.rotationSequential).tag(RotationType.sequential)
+                            Text(L.rotationRandom).tag(RotationType.random)
                         }
                         .onChange(of: viewModel.engine.rotationType) {
                             if viewModel.engine.rotationType == RotationType.sequential {
@@ -764,7 +795,7 @@ struct SettingsView: View {
 
                     // Clear Cache
                     SettingRow(title: L.clearCache) {
-                        Button(L.clearCacheButton) {
+                        Button(L.clearCache) {
                             viewModel.clearCache()
                         }
                     }
@@ -789,9 +820,9 @@ struct SettingsView: View {
         let h = totalMinutes / 60
         let m = totalMinutes % 60
         if h > 0 {
-            return "\(h)h \(m)m"
+            return String(format: L.timeHoursMinutes, h, m)
         }
-        return "\(m) min"
+        return String(format: L.timeMinutes, m)
     }
 
     private func selectFolder() {

@@ -66,6 +66,7 @@
 		A10000080000000000000001 /* VideoRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000180000000000000001 /* VideoRenderer.swift */; };
 		A10000090000000000000001 /* VideoItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000190000000000000001 /* VideoItem.swift */; };
 		A100000A0000000000000001 /* WallpaperViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001A0000000000000001 /* WallpaperViewModel.swift */; };
+		B20000010000000000000001 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = B20000100000000000000001 /* Localizable.strings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -291,6 +292,8 @@
 		A10000180000000000000001 /* VideoRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoRenderer.swift; sourceTree = "<group>"; };
 		A10000190000000000000001 /* VideoItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoItem.swift; sourceTree = "<group>"; };
 		A100001A0000000000000001 /* WallpaperViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpaperViewModel.swift; sourceTree = "<group>"; };
+		B20000110000000000000001 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = SOURCE_ROOT; };
+		B20000120000000000000001 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -362,6 +365,7 @@
 		04E0565B2EEAB3DD00F90A44 /* LiveWallpaper */ = {
 			isa = PBXGroup;
 			children = (
+				B20000100000000000000001 /* Localizable.strings */,
 				A10000210000000000000001 /* Core */,
 				A10000220000000000000001 /* Display */,
 				A10000230000000000000001 /* Renderer */,
@@ -764,6 +768,7 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				"zh-Hans",
 				Base,
 			);
 			mainGroup = 04E007012EEA738C00F90A44;
@@ -783,6 +788,7 @@
 		04E007082EEA738C00F90A44 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
+				B20000010000000000000001 /* Localizable.strings in Resources */,
 				04E057382EEAB3EE00F90A44 /* Assets.xcassets in Resources */,
 				048ABDDD2F4C1652001393B0 /* AppIcon.icon in Resources */,
 			);
@@ -848,6 +854,18 @@
 			);
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		B20000100000000000000001 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				B20000110000000000000001 /* en */,
+				B20000120000000000000001 /* zh-Hans */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		04E007132EEA738D00F90A44 /* Debug configuration for PBXProject "LiveWallpaper" */ = {
