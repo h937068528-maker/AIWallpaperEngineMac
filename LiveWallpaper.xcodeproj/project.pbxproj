@@ -31,9 +31,9 @@
 		04E057792EEAB43200F90A44 /* scantoken.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04E057672EEAB43200F90A44 /* scantoken.cpp */; };
 		04E0577A2EEAB43200F90A44 /* scanscalar.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04E057642EEAB43200F90A44 /* scanscalar.cpp */; };
 		04E0577B2EEAB43200F90A44 /* scantag.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04E057662EEAB43200F90A44 /* scantag.cpp */; };
-		04E0577C2EEAB43200F90A44 /* parse.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04E0575B2EEAB43200F90A44 /* parse.cpp */; };
+		04E0577C2EEAB43200F90A44 /* parse.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04E0575B2EEAB43200F90A44 /* parse.cpp */; settings = {COMPILER_FLAGS = "-Wno-documentation"; }; };
 		04E0577D2EEAB43200F90A44 /* binary.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04E057402EEAB43200F90A44 /* binary.cpp */; };
-		04E0577E2EEAB43200F90A44 /* fptostring.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04E057502EEAB43200F90A44 /* fptostring.cpp */; };
+		04E0577E2EEAB43200F90A44 /* fptostring.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04E057502EEAB43200F90A44 /* fptostring.cpp */; settings = {COMPILER_FLAGS = "-Wno-documentation -Wno-shorten-64-to-32"; }; };
 		04E0577F2EEAB43200F90A44 /* parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04E0575C2EEAB43200F90A44 /* parser.cpp */; };
 		04E057802EEAB43200F90A44 /* graphbuilder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04E0573A2EEAB43200F90A44 /* graphbuilder.cpp */; };
 		04E057812EEAB43200F90A44 /* emitter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04E057482EEAB43200F90A44 /* emitter.cpp */; };
@@ -44,10 +44,10 @@
 		04E057862EEAB43200F90A44 /* convert.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04E057422EEAB43200F90A44 /* convert.cpp */; };
 		04E057872EEAB43200F90A44 /* emitterutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04E0574C2EEAB43200F90A44 /* emitterutils.cpp */; };
 		04E057882EEAB43200F90A44 /* exceptions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04E0574D2EEAB43200F90A44 /* exceptions.cpp */; };
-		04E057892EEAB43200F90A44 /* depthguard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04E057432EEAB43200F90A44 /* depthguard.cpp */; };
+		04E057892EEAB43200F90A44 /* depthguard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04E057432EEAB43200F90A44 /* depthguard.cpp */; settings = {COMPILER_FLAGS = "-Wno-documentation"; }; };
 		04E0578A2EEAB43200F90A44 /* graphbuilderadapter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04E0573C2EEAB43200F90A44 /* graphbuilderadapter.cpp */; };
 		04E0578B2EEAB43200F90A44 /* node_data.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04E057542EEAB43200F90A44 /* node_data.cpp */; };
-		04E0578C2EEAB43200F90A44 /* singledocparser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04E0576B2EEAB43200F90A44 /* singledocparser.cpp */; };
+		04E0578C2EEAB43200F90A44 /* singledocparser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04E0576B2EEAB43200F90A44 /* singledocparser.cpp */; settings = {COMPILER_FLAGS = "-Wno-documentation"; }; };
 		04E0578D2EEAB43200F90A44 /* stream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04E0576D2EEAB43200F90A44 /* stream.cpp */; };
 		04E0578E2EEAB43200F90A44 /* node.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04E057532EEAB43200F90A44 /* node.cpp */; };
 		04E0578F2EEAB43200F90A44 /* exp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04E0574F2EEAB43200F90A44 /* exp.cpp */; };
@@ -1005,10 +1005,9 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
 				GENERATE_INFOPLIST_FILE = YES;
-				HEADER_SEARCH_PATHS = "$(SRCROOT)/vendor/yaml-cpp/include";
+				SYSTEM_HEADER_SEARCH_PATHS = "$(SRCROOT)/vendor/yaml-cpp/include";
 				INFOPLIST_KEY_CFBundleDisplayName = LiveWallpaper;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				INFOPLIST_KEY_NSAppleEventsUsageDescription = "";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1016,7 +1015,6 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/build/vendor/yaml-cpp",
 					"$(PROJECT_DIR)",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
@@ -1024,6 +1022,7 @@
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = com.thusvill.LiveWallpaper;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = macosx;
 				REGISTER_APP_GROUPS = YES;
 				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = NO;
 				RUNTIME_EXCEPTION_ALLOW_JIT = NO;
@@ -1059,10 +1058,9 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
 				GENERATE_INFOPLIST_FILE = YES;
-				HEADER_SEARCH_PATHS = "$(SRCROOT)/vendor/yaml-cpp/include";
+				SYSTEM_HEADER_SEARCH_PATHS = "$(SRCROOT)/vendor/yaml-cpp/include";
 				INFOPLIST_KEY_CFBundleDisplayName = LiveWallpaper;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				INFOPLIST_KEY_NSAppleEventsUsageDescription = "";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1070,7 +1068,6 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/build/vendor/yaml-cpp",
 					"$(PROJECT_DIR)",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
@@ -1078,6 +1075,7 @@
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = com.thusvill.LiveWallpaper;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = macosx;
 				REGISTER_APP_GROUPS = YES;
 				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = NO;
 				RUNTIME_EXCEPTION_ALLOW_JIT = NO;
@@ -1114,6 +1112,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.thusvill.LiveWallpaper;
 				"PRODUCT_BUNDLE_IDENTIFIER[sdk=macosx*]" = com.thusvill.Livewallpaper;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = macosx;
 				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = NO;
 				RUNTIME_EXCEPTION_ALLOW_JIT = NO;
 				RUNTIME_EXCEPTION_ALLOW_UNSIGNED_EXECUTABLE_MEMORY = NO;
@@ -1141,6 +1140,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.thusvill.LiveWallpaper;
 				"PRODUCT_BUNDLE_IDENTIFIER[sdk=macosx*]" = com.thusvill.Livewallpaper;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = macosx;
 				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = NO;
 				RUNTIME_EXCEPTION_ALLOW_JIT = NO;
 				RUNTIME_EXCEPTION_ALLOW_UNSIGNED_EXECUTABLE_MEMORY = NO;

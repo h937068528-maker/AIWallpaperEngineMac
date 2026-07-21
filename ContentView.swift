@@ -46,15 +46,10 @@ extension View {
     func compatibleGlass(
         material: NSVisualEffectView.Material = .headerView, cornerRadius: CGFloat = 16
     ) -> some View {
-        if #available(macOS 20.0, *) {
-            self.background(
-                VisualEffectView(material: material)
-                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-            )
-        } else {
-            self.background(.ultraThinMaterial)
+        self.background(
+            VisualEffectView(material: material)
                 .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-        }
+        )
     }
 }
 
@@ -573,9 +568,8 @@ struct SettingsView: View {
                             Text(L.scaleCenter).tag(3)
                             Text(L.scaleHeightFill).tag(4)
                         }
-                        .onChange(of: scaleMode) {
-
-                            viewModel.engine.updateScaleMode(scaleMode)
+                        .onChange(of: scaleMode) { _, newValue in
+                            viewModel.engine.updateScaleMode(newValue)
                         }
 
                     }
@@ -722,7 +716,7 @@ struct SettingsView: View {
                             // 2. The Stepper (with an empty label)
                             Stepper("", value: $localMinutes, in: 1...1440, step: 4)
                                 .labelsHidden()  // This hides the extra space Stepper usually takes
-                                .onChange(of: localMinutes) { newValue in
+                                .onChange(of: localMinutes) { _, newValue in
                                     viewModel.engine.rotationDelay = Int32(newValue * 60)
                                     UserDefaults.standard.set(
                                         (newValue * 60), forKey: UserDefaultsKeys.rdelay)
@@ -756,8 +750,8 @@ struct SettingsView: View {
                             Text(L.rotationSequential).tag(RotationType.sequential)
                             Text(L.rotationRandom).tag(RotationType.random)
                         }
-                        .onChange(of: viewModel.engine.rotationType) {
-                            if viewModel.engine.rotationType == RotationType.sequential {
+                        .onChange(of: viewModel.engine.rotationType) { _, newValue in
+                            if newValue == RotationType.sequential {
                                 UserDefaults.standard.set(1, forKey: UserDefaultsKeys.rtype)
                             } else {
                                 UserDefaults.standard.set(2, forKey: UserDefaultsKeys.rtype)
@@ -774,7 +768,7 @@ struct SettingsView: View {
                         HStack {
                             Slider(value: $viewModel.volume, in: 0...100, step: 1)
                                 .frame(width: 200)
-                                .onChange(of: viewModel.volume) { newValue in
+                                .onChange(of: viewModel.volume) { _, newValue in
                                     viewModel.engine.updateVolume(newValue)
                                 }
                             Text("\(Int(viewModel.volume))%")

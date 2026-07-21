@@ -94,7 +94,7 @@ static inline NSString *displayNameForDisplayID(CGDirectDisplayID did) {
   for (NSScreen *screen in NSScreen.screens) {
     NSDictionary *desc = screen.deviceDescription;
     NSNumber *num = desc[@"NSScreenNumber"];
-    if (!num)
+    if (num == nil)
       continue;
     if ((CGDirectDisplayID)num.unsignedIntValue == did) {
       NSString *n = desc[@"NSDeviceName"];
@@ -197,7 +197,7 @@ static std::list<Display> displays{};
 //  NSLog(@"----------------------");
 //}
 
-static void ScanDisplays() {
+[[maybe_unused]] static void ScanDisplays() {
   NSArray *screens = [NSScreen screens];
 
   std::unordered_map<std::string, CGDirectDisplayID> runtime;
@@ -241,7 +241,7 @@ static void ScanDisplays() {
   }
 }
 
-static void SetWallpaperDisplay(pid_t daemon_PID, CGDirectDisplayID displayID,
+[[maybe_unused]] static void SetWallpaperDisplay(pid_t daemon_PID, CGDirectDisplayID displayID,
                                 std::string videoPath, std::string framePath) {
 
   for (Display &display : displays) {

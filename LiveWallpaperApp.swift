@@ -18,7 +18,6 @@
 
 import SwiftUI
 import AppKit
-import ApplicationServices
 import ServiceManagement
 
 let sharedEngine = WallpaperEngine.shared()
@@ -35,7 +34,8 @@ struct LiveWallpaperApp: App {
 }
 
 
-class AppDelegate: NSObject, NSApplicationDelegate {
+@MainActor
+final class AppDelegate: NSObject, NSApplicationDelegate {
     var statusItem: NSStatusItem!
     var window: NSWindow!
     
@@ -60,10 +60,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         
         let menu = NSMenu()
-        menu.addItem(NSMenuItem(title: L.showWindow, action: #selector(showWindow), keyEquivalent: "s"))
-        menu.addItem(NSMenuItem(title: L.hideWindow, action: #selector(hideWindow), keyEquivalent: "h"))
+        menu.addItem(statusMenuItem(title: L.showWindow, action: #selector(showWindow), keyEquivalent: "s"))
+        menu.addItem(statusMenuItem(title: L.hideWindow, action: #selector(hideWindow), keyEquivalent: "h"))
         menu.addItem(NSMenuItem.separator())
-        menu.addItem(NSMenuItem(title: L.quit, action: #selector(quit), keyEquivalent: "q"))
+        menu.addItem(statusMenuItem(title: L.quit, action: #selector(quit), keyEquivalent: "q"))
         statusItem.menu = menu
 
         // Create main window with ContentView
@@ -83,16 +83,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.contentView = NSHostingView(rootView: ContentView())
         window.title = applicationDisplayName
         window.isReleasedWhenClosed = false
-        window.makeKeyAndOrderFront(nil)
+        presentMainWindow()
         
-        if !hasAccessibilityAccess() {
-            requestAccessibilityAccess()
-        }
-
-        
-        if !isLoginItemEnabled() {
-            setLoginItem(enabled: true)
-        }
+        setLoginItem(enabled: true)
         
 
         
@@ -103,16 +96,26 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         coreEngine.terminateApplication()
     }
 
+    func applicationShouldHandleReopen(
+        _ sender: NSApplication,
+        hasVisibleWindows flag: Bool
+    ) -> Bool {
+        presentMainWindow()
+        return true
+    }
+
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        false
+    }
+
     // Show the config window
     @objc func showWindow() {
-        window.makeKeyAndOrderFront(nil)
-        NSApp.activate(ignoringOtherApps: true)
-        
+        presentMainWindow()
     }
 
     // Hide the window without quitting the app
     @objc func hideWindow() {
-        window.orderOut(nil)
+        hideMainWindow()
     }
 
     // Quit the app completely
@@ -121,30 +124,51 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         coreEngine.terminateApplication()
         NSApp.terminate(nil)
     }
-}
 
-// MARK: Permission Access
+    private func presentMainWindow() {
+        if window.isMiniaturized {
+            window.deminiaturize(nil)
+        }
+        NSApp.activate()
+        window.makeKeyAndOrderFront(nil)
+    }
 
-func hasAccessibilityAccess() -> Bool {
-    return AXIsProcessTrusted()
-}
+    private func hideMainWindow() {
+        window.orderOut(nil)
+    }
 
-func requestAccessibilityAccess() {
-    let options: [String: Bool] = ["AXTrustedCheckOptionPrompt": true]
-    AXIsProcessTrustedWithOptions(options as CFDictionary)
+    private func statusMenuItem(
+        title: String,
+        action: Selector,
+        keyEquivalent: String
+    ) -> NSMenuItem {
+        let item = NSMenuItem(title: title, action: action, keyEquivalent: keyEquivalent)
+        item.target = self
+        return item
+    }
 }
 
 func isLoginItemEnabled() -> Bool {
-    return UserDefaults.standard.bool(forKey: UserDefaultsKeys.launchAtLogin)
+    let status = SMAppService.mainApp.status
+    return status == .enabled || status == .requiresApproval
 }
 
-
 func setLoginItem(enabled: Bool) {
-    guard let bundleId = Bundle.main.bundleIdentifier else { return }
+    let service = SMAppService.mainApp
 
-    if SMLoginItemSetEnabled(bundleId as CFString, enabled) {
-        UserDefaults.standard.set(enabled, forKey: UserDefaultsKeys.launchAtLogin)
-    } else {
-        print("❌ Failed to update login items")
+    do {
+        if enabled {
+            if service.status == .notRegistered {
+                try service.register()
+            }
+        } else if service.status == .enabled || service.status == .requiresApproval {
+            try service.unregister()
+        }
+
+        let registered = service.status == .enabled || service.status == .requiresApproval
+        UserDefaults.standard.set(registered, forKey: UserDefaultsKeys.launchAtLogin)
+    } catch {
+        UserDefaults.standard.set(false, forKey: UserDefaultsKeys.launchAtLogin)
+        NSLog("Unable to update launch-at-login registration: %@", error.localizedDescription)
     }
 }

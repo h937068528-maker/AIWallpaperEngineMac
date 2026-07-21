@@ -24,6 +24,8 @@
 #import <IOKit/graphics/IOGraphicsLib.h>
 #include <filesystem>
 #import <mach/mach.h>
+#import <libproc.h>
+#include <set>
 #include <spawn.h>
 #include <unistd.h>
 
@@ -34,6 +36,20 @@ extern char **environ;
 #define QUALITY_BADGE_FONT_SIZE 48.0f
 
 static NSString *folderPath = nil;
+
+static BOOL ProcessUsesExecutable(pid_t pid, NSString *expectedPath) {
+  if (pid <= 0 || expectedPath.length == 0)
+    return NO;
+
+  char executablePath[PROC_PIDPATHINFO_MAXSIZE] = {0};
+  int pathLength = proc_pidpath(pid, executablePath, sizeof(executablePath));
+  if (pathLength <= 0)
+    return NO;
+
+  NSString *actualPath = [NSString stringWithUTF8String:executablePath];
+  return [actualPath.stringByStandardizingPath
+      isEqualToString:expectedPath.stringByStandardizingPath];
+}
 
 @implementation WallpaperEngine {
 @private
@@ -68,12 +84,9 @@ static NSString *folderPath = nil;
       _currentWallpaper = 0;
       _wallpaperList = [NSMutableArray array];
       
-    ScanDisplays();
-
-    [self killAllDaemons];
-    usleep(2);
-
     displays = SaveSystem::Load();
+    ScanDisplays();
+    [self killAllDaemons];
 
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
       
@@ -771,7 +784,8 @@ static NSString *folderPath = nil;
     NSURL *thumbURL = [NSURL fileURLWithPath:thumbPath];
 
     CGImageDestinationRef destination = CGImageDestinationCreateWithURL(
-        (__bridge CFURLRef)thumbURL, kUTTypePNG, 1, NULL);
+        (__bridge CFURLRef)thumbURL,
+        (__bridge CFStringRef)UTTypePNG.identifier, 1, NULL);
 
     if (!destination) {
       NSLog(@"Failed to create CGImageDestination for %@", thumbName);
@@ -1045,27 +1059,27 @@ static NSString *folderPath = nil;
 }
 
 - (void)killAllDaemons {
-  NSTask *killTask = [[NSTask alloc] init];
-  killTask.launchPath = @"/usr/bin/killall";
-  killTask.arguments = @[ @"wallpaperdaemon" ];
-  [killTask launch];
-  [killTask waitUntilExit];
-
-  int status = killTask.terminationStatus;
-  if (status != 0) {
-    NSLog(@"No running wallpaperdaemon process found or killall failed");
-  } else {
-    NSLog(@"wallpaperdaemon processes killed");
-  }
+  NSString *daemonPath = [[[NSBundle mainBundle] bundlePath]
+      stringByAppendingPathComponent:@"Contents/MacOS/wallpaperdaemon"];
+  std::set<pid_t> ownedPIDs;
 
   for (pid_t pid : _daemonPIDs) {
-    kill(pid, SIGTERM);
+    ownedPIDs.insert(pid);
+  }
+
+  for (Display &display : displays) {
+    if (ProcessUsesExecutable(display.daemon, daemonPath)) {
+      ownedPIDs.insert(display.daemon);
+      display.daemon = 0;
+    }
+  }
+
+  for (pid_t pid : ownedPIDs) {
+    if (ProcessUsesExecutable(pid, daemonPath)) {
+      kill(pid, SIGTERM);
+    }
   }
   _daemonPIDs.clear();
-
-  CFNotificationCenterPostNotification(
-      CFNotificationCenterGetDarwinNotifyCenter(),
-      CFSTR("com.live.wallpaper.terminate"), NULL, NULL, true);
 }
 
 - (void)checkFolderPath {
@@ -1184,6 +1198,10 @@ static NSString *folderPath = nil;
     NSLog(@"Wallpaper rotation started with %d delay.", delay);
 }
 
+- (void)startPlaylist {
+    [self startWallpaperRotation];
+}
+
 - (void)scanDisplays {
   ScanDisplays();
 }
@@ -1273,4 +1291,3 @@ CGImageRef CompressImageWithQuality(CGImageRef image, float qualityFactor) {
       [NSBitmapImageRep imageRepWithData:compressedData];
   return [compressedRep CGImage];
 }
-

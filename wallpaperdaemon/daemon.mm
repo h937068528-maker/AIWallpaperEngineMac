@@ -101,7 +101,7 @@ static void DisplayReconfigCallback(CGDirectDisplayID display,
     _reducedPerformanceMode = NO;
 
     NSNumber *screenNumber = targetScreen.deviceDescription[@"NSScreenNumber"];
-    _targetDisplayID = screenNumber
+    _targetDisplayID = screenNumber != nil
                            ? (CGDirectDisplayID)screenNumber.unsignedIntValue
                            : kCGNullDirectDisplay;
 
@@ -328,7 +328,7 @@ static void DisplayReconfigCallback(CGDirectDisplayID display,
     NSRect visibleFrame = self->_targetScreen.frame;
 
     for (AVPlayerLayer *layer in self.playerLayers) {
-      switch (_scalingMode) {
+      switch (self->_scalingMode) {
       case 1:
         layer.videoGravity = AVLayerVideoGravityResizeAspect;
         break;
@@ -348,7 +348,7 @@ static void DisplayReconfigCallback(CGDirectDisplayID display,
         break;
       }
 
-      if (_scalingMode != 3) {
+      if (self->_scalingMode != 3) {
         layer.frame = visibleFrame;
         layer.autoresizingMask = kCALayerWidthSizable | kCALayerHeightSizable;
       }
@@ -556,7 +556,7 @@ static void terminateWallpaperDaemonCallback(CFNotificationCenterRef center,
                              MAX(fabs(targetFrame.size.height), FLT_EPSILON);
 
     NSNumber *alphaNumber = window[(NSString *)kCGWindowAlpha];
-    CGFloat alpha = alphaNumber ? alphaNumber.doubleValue : 1.0;
+    CGFloat alpha = alphaNumber != nil ? alphaNumber.doubleValue : 1.0;
 
     BOOL nearlyFullWidth = widthCoverage >= 0.95;
     BOOL nearlyFullHeight = heightCoverage >= 0.90;
@@ -743,7 +743,7 @@ static void terminateWallpaperDaemonCallback(CFNotificationCenterRef center,
   if (locked && CFGetTypeID(locked) == CFBooleanGetTypeID()) {
     isLocked = (locked == kCFBooleanTrue);
   }
-  if (locked)
+  if (locked != NULL)
     CFRelease(locked);
   return isLocked;
 }
@@ -965,13 +965,14 @@ NSScreen *ScreenForDisplayID(CGDirectDisplayID displayID) {
 
 float volume;
 int main(int argc, const char *argv[]) {
+  __attribute__((objc_precise_lifetime)) VideoWallpaperDaemon *daemon = nil;
 
   @autoreleasepool {
     [NSApplication sharedApplication];
     [NSApp setActivationPolicy:NSApplicationActivationPolicyAccessory];
     [NSApp finishLaunching];
 
-    if (argc < 4) {
+    if (argc < 5) {
       NSLog(@"Usage: %s <video.mp4> <frame_output.png> <volume> <scale_mode> "
             @"<display_uuid(optional)>",
             argv[0]);
@@ -1000,12 +1001,11 @@ int main(int argc, const char *argv[]) {
     [[NSUserDefaults standardUserDefaults] setFloat:volume
                                              forKey:@"wallpapervolume"];
 
-    VideoWallpaperDaemon *daemon =
-        [[VideoWallpaperDaemon alloc] initWithVideo:videoPath
-                                        frameOutput:framePath
-                                        scalingMode:scaleMode
-                                       targetScreen:targetScreen
-                                        targetUUID:targetUUID];
+    daemon = [[VideoWallpaperDaemon alloc] initWithVideo:videoPath
+                                             frameOutput:framePath
+                                             scalingMode:scaleMode
+                                            targetScreen:targetScreen
+                                             targetUUID:targetUUID];
 
     CFNotificationCenterAddObserver(
         CFNotificationCenterGetDarwinNotifyCenter(),
@@ -1037,8 +1037,9 @@ int main(int argc, const char *argv[]) {
         CFSTR("com.live.wallpaper.scaleModeChanged"), NULL,
         CFNotificationSuspensionBehaviorDeliverImmediately);
 
-    [[NSRunLoop mainRunLoop] run];
   }
+
+  [[NSRunLoop mainRunLoop] run];
 
   return 0;
 }
