@@ -15,6 +15,7 @@ xcodebuild \
   -project "${project_directory}/LiveWallpaper.xcodeproj" \
   -scheme LiveWallpaper \
   -configuration Release \
+  -destination "platform=macOS,arch=arm64" \
   -derivedDataPath "${derived_data_directory}" \
   -xcconfig "${configuration_file}" \
   CODE_SIGNING_ALLOWED=NO \

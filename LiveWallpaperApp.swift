@@ -158,7 +158,7 @@ func setLoginItem(enabled: Bool) {
 
     do {
         if enabled {
-            if service.status == .notRegistered {
+            if service.status == .notRegistered || service.status == .notFound {
                 try service.register()
             }
         } else if service.status == .enabled || service.status == .requiresApproval {
@@ -167,6 +167,7 @@ func setLoginItem(enabled: Bool) {
 
         let registered = service.status == .enabled || service.status == .requiresApproval
         UserDefaults.standard.set(registered, forKey: UserDefaultsKeys.launchAtLogin)
+        NSLog("Launch-at-login status: %ld", service.status.rawValue)
     } catch {
         UserDefaults.standard.set(false, forKey: UserDefaultsKeys.launchAtLogin)
         NSLog("Unable to update launch-at-login registration: %@", error.localizedDescription)
