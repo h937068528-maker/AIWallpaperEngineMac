@@ -209,12 +209,11 @@ static std::list<Display> displays{};
     runtime[uuid] = did;
   }
 
-  for (auto it = displays.begin(); it != displays.end();) {
-    if (runtime.find(it->uuid) == runtime.end()) {
-      KillProcessByPID(it->daemon);
-      it = displays.erase(it);
-    } else {
-      ++it;
+  // Keep disconnected displays by UUID so their independent wallpaper choice
+  // survives a cable disconnect, sleep dock transition, or app restart.
+  for (auto &display : displays) {
+    if (runtime.find(display.uuid) == runtime.end()) {
+      display.screen = kCGNullDirectDisplay;
     }
   }
 

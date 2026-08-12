@@ -22,8 +22,27 @@ import ServiceManagement
 
 let sharedEngine = WallpaperEngine.shared()
 
+@MainActor
+private final class WallpaperTouchBarWindow: NSWindow {
+    private let providedTouchBar: () -> NSTouchBar?
+
+    init(providedTouchBar: @escaping () -> NSTouchBar?) {
+        self.providedTouchBar = providedTouchBar
+        super.init(
+            contentRect: NSRect(x: 0, y: 0, width: 1100, height: 720),
+            styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
+            backing: .buffered,
+            defer: false
+        )
+    }
+
+    override func makeTouchBar() -> NSTouchBar? {
+        providedTouchBar()
+    }
+}
+
 @main
-struct LiveWallpaperApp: App {
+struct AIWallpaperEngineMacApp: App {
     
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
@@ -38,6 +57,7 @@ struct LiveWallpaperApp: App {
 final class AppDelegate: NSObject, NSApplicationDelegate {
     var statusItem: NSStatusItem!
     var window: NSWindow!
+    private var touchBarController: TouchBarController?
     
     let engine = sharedEngine
     @MainActor private lazy var coreEngine = AIWallpaperEngine.shared
@@ -45,17 +65,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var applicationDisplayName: String {
         (Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String)
             ?? (Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String)
-            ?? "LiveWallpaper"
+            ?? "AIWallpaperEngineMac"
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        terminateOtherApplicationInstances()
+        _ = PerformanceSettingsStore.shared
         
         NSApp.setActivationPolicy(.accessory)
 
         
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: "play.desktopcomputer", accessibilityDescription: "Live Wallpaper")
+            let icon = NSApp.applicationIconImage.copy() as? NSImage
+            icon?.size = NSSize(width: 18, height: 18)
+            icon?.isTemplate = false
+            button.image = icon
+            button.imagePosition = .imageOnly
+            button.toolTip = "AIWallpaperEngineMac"
         }
 
         
@@ -66,26 +93,31 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(statusMenuItem(title: L.quit, action: #selector(quit), keyEquivalent: "q"))
         statusItem.menu = menu
 
-        // Create main window with ContentView
-        window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 800, height: 600),
-            styleMask: [.titled, .closable, .resizable, .fullSizeContentView,.borderless],
-            backing: .buffered,
-            defer: false
+        touchBarController = TouchBarController(
+            showWindow: { [weak self] in self?.presentMainWindow() },
+            hideWindow: { [weak self] in self?.hideMainWindow() }
         )
-        //hide titlebar
-        //window.titleVisibility = .hidden
+
+        // This window is a responder-chain Touch Bar provider. SwiftUI first
+        // responders can then compose their contextual items into this bar.
+        window = WallpaperTouchBarWindow { [weak self] in
+            self?.touchBarController?.touchBar
+        }
         window.titlebarAppearsTransparent = true
-        window.isMovableByWindowBackground = true
         window.toolbarStyle = .unified
+        window.titlebarSeparatorStyle = .none
+        window.tabbingMode = .disallowed
+        window.minSize = NSSize(width: 860, height: 560)
         
         window.center()
         window.contentView = NSHostingView(rootView: ContentView())
         window.title = applicationDisplayName
         window.isReleasedWhenClosed = false
+        window.touchBar = touchBarController?.touchBar
         presentMainWindow()
+        restoreSystemLockScreenImages()
         
-        setLoginItem(enabled: true)
+        configureLoginItem()
         
 
         
@@ -129,7 +161,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if window.isMiniaturized {
             window.deminiaturize(nil)
         }
-        NSApp.activate()
+        NSApp.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)
     }
 
@@ -145,6 +177,58 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let item = NSMenuItem(title: title, action: action, keyEquivalent: keyEquivalent)
         item.target = self
         return item
+    }
+
+    private func configureLoginItem() {
+        // Development builds must never create a second persistent login item.
+        guard Bundle.main.bundleURL.path.hasPrefix("/Applications/") else { return }
+
+        let defaults = UserDefaults.standard
+        if defaults.object(forKey: UserDefaultsKeys.launchAtLogin) == nil {
+            setLoginItem(enabled: true)
+        } else {
+            setLoginItem(enabled: defaults.bool(forKey: UserDefaultsKeys.launchAtLogin))
+        }
+    }
+
+    private func terminateOtherApplicationInstances() {
+        guard let identifier = Bundle.main.bundleIdentifier else { return }
+        let ownPID = ProcessInfo.processInfo.processIdentifier
+        for application in NSRunningApplication.runningApplications(
+            withBundleIdentifier: identifier
+        ) where application.processIdentifier != ownPID {
+            application.terminate()
+        }
+    }
+
+    private func restoreSystemLockScreenImages() {
+        let displays = coreEngine.getDisplays()
+        var restoredDisplays = Set<CGDirectDisplayID>()
+
+        for display in displays {
+            guard
+                let path = display.videoPath,
+                !path.isEmpty,
+                FileManager.default.fileExists(atPath: path)
+            else { continue }
+
+            SystemWallpaperSynchronizer.shared.synchronize(
+                sourceURL: URL(fileURLWithPath: path),
+                displayIDs: [display.screen]
+            )
+            restoredDisplays.insert(display.screen)
+        }
+
+        guard
+            restoredDisplays.isEmpty,
+            let lastPath = UserDefaults.standard.string(forKey: "LastWallpaperPath"),
+            FileManager.default.fileExists(atPath: lastPath)
+        else { return }
+
+        SystemWallpaperSynchronizer.shared.synchronize(
+            sourceURL: URL(fileURLWithPath: lastPath),
+            displayIDs: displays.map(\.screen)
+        )
     }
 }
 

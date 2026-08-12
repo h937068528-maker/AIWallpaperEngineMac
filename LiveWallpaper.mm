@@ -309,12 +309,12 @@ NSString *getFolderPath(void) {
 - (BOOL)enableAppAsLoginItem {
   NSString *agentPath = [NSHomeDirectory()
       stringByAppendingPathComponent:
-          @"Library/LaunchAgents/com.thusvill.LiveWallpaper.plist"];
+          @"Library/LaunchAgents/com.aiwallpaperengine.mac.plist"];
 
   NSString *execPath = [[NSBundle mainBundle] executablePath];
 
   NSDictionary *plist = @{
-    @"Label" : @"com.thusvill.LiveWallpaper",
+    @"Label" : @"com.aiwallpaperengine.mac",
     @"ProgramArguments" : @[ execPath ],
     @"RunAtLoad" : @YES,
     @"KeepAlive" : @NO
@@ -348,7 +348,7 @@ NSString *getFolderPath(void) {
 
 - (IBAction)addLoginItem:(id)sender {
   NSAlert *alert = [[NSAlert alloc] init];
-  [alert setMessageText:@"Start LiveWallpaper at login?"];
+  [alert setMessageText:@"Start AIWallpaperEngineMac at login?"];
   [alert addButtonWithTitle:@"Yes"];
   [alert addButtonWithTitle:@"No"];
   NSModalResponse response = [alert runModal];
@@ -365,7 +365,7 @@ NSString *getFolderPath(void) {
       [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"];
 
   if (!bundleName || bundleName.length == 0) {
-    bundleName = @"LiveWallpaper";
+    bundleName = @"AIWallpaperEngineMac";
   }
   NSString *thumbnailPath = [systemCacheDir
       stringByAppendingPathComponent:[NSString
@@ -391,7 +391,7 @@ NSString *getFolderPath(void) {
       [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"];
 
   if (!bundleName || bundleName.length == 0) {
-    bundleName = @"LiveWallpaper";
+    bundleName = @"AIWallpaperEngineMac";
   }
   NSString *wallpapersPath = [systemCacheDir
       stringByAppendingPathComponent:[NSString
@@ -1345,7 +1345,7 @@ NSTextField *CreateLabel(NSString *string) {
   {
     NSString *agentPath = [NSHomeDirectory()
         stringByAppendingPathComponent:
-            @"Library/LaunchAgents/com.thusvill.LiveWallpaper.plist"];
+            @"Library/LaunchAgents/com.aiwallpaperengine.mac.plist"];
     if (![[NSFileManager defaultManager] fileExistsAtPath:agentPath]) {
       LineModule *permissions = [[LineModule alloc] initWithFrame:NSZeroRect];
       permissions.translatesAutoresizingMaskIntoConstraints = NO;
@@ -1464,7 +1464,7 @@ NSTextField *CreateLabel(NSString *string) {
 - (void)promptForLoginItem {
   NSString *agentPath = [NSHomeDirectory()
       stringByAppendingPathComponent:
-          @"Library/LaunchAgents/com.thusvill.LiveWallpaper.plist"];
+          @"Library/LaunchAgents/com.aiwallpaperengine.mac.plist"];
   BOOL exists = [[NSFileManager defaultManager] fileExistsAtPath:agentPath];
   if (!exists) {
     NSAlert *alert = [[NSAlert alloc] init];
@@ -1503,7 +1503,7 @@ NSTextField *CreateLabel(NSString *string) {
                                                NSWindowStyleMaskClosable)
                                       backing:NSBackingStoreBuffered
                                         defer:NO];
-    [self.progressWindow setTitle:@"Optimizing Live Wallpapers"];
+    [self.progressWindow setTitle:@"Optimizing AI Wallpapers"];
     [self.progressWindow center];
 
     NSView *contentView = self.progressWindow.contentView;
@@ -2309,7 +2309,7 @@ void generateStaticWallpapersForFolderCallback(CFNotificationCenterRef center,
                            NSWindowStyleMaskResizable)
                   backing:NSBackingStoreBuffered
                     defer:NO];
-  [self.blurWindow setTitle:@"LiveWallpaper by Bios"];
+  [self.blurWindow setTitle:@"AIWallpaperEngineMac"];
   [self.blurWindow center];
   [self.blurWindow
       setCollectionBehavior:NSWindowCollectionBehaviorMoveToActiveSpace];

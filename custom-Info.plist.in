@@ -12,19 +12,19 @@
 <string>livewall</string>
 
   <key>CFBundleIdentifier</key>
-  <string>com.thusvill.LiveWallpaper</string>
+  <string>com.aiwallpaperengine.mac</string>
 
   <key>CFBundleName</key>
-  <string>LiveWallpaper</string>
+  <string>AIWallpaperEngineMac</string>
 
   <key>CFBundlePackageType</key>
   <string>APPL</string>
 
 <key>CFBundleShortVersionString</key>
-<string>1.2.5</string>
+<string>2.7</string>
 
 <key>CFBundleVersion</key>
-<string>1.2.5</string>
+<string>1</string>
   <key>LSUIElement</key>
   <true/>
 

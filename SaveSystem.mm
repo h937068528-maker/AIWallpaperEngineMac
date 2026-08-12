@@ -17,12 +17,14 @@
  */
 
 #include "SaveSystem.h"
+#include <cstdio>
 #include <filesystem>
 #include <fstream>
+#include <unistd.h>
 
 static std::string configPath() {
   return std::string(NSHomeDirectory().fileSystemRepresentation) +
-         "/Library/Preferences/LiveWallpaper.yaml";
+         "/Library/Preferences/AIWallpaperEngineMac.yaml";
 }
 
 // ------------------------
@@ -42,19 +44,22 @@ template <> struct convert<Display> {
   }
 
   static bool decode(const Node &node, Display &d) {
+    try {
+      d.uuid = node["uuid"] ? node["uuid"].as<std::string>() : "";
+      d.videoPath =
+          node["video"] ? node["video"].as<std::string>() : "";
+      d.framePath =
+          node["frame"] ? node["frame"].as<std::string>() : "";
+    } catch (const YAML::Exception &) {
+      return false;
+    }
 
-    if (node["uuid"])
-      d.uuid = node["uuid"].as<std::string>();
-    else
-      d.uuid = "";
-
-    d.screen = node["screen"].as<CGDirectDisplayID>();
-
-    d.videoPath = node["video"] ? node["video"].as<std::string>() : "";
-    d.framePath = node["frame"] ? node["frame"].as<std::string>() : "";
-    d.daemon = node["daemon"] ? (pid_t)node["daemon"].as<int>() : 0;
-
-    return true;
+    // Display IDs and process IDs are runtime-only values. Restoring a stale
+    // daemon PID can target an unrelated process, and malformed legacy values
+    // must never prevent the app from launching.
+    d.screen = kCGNullDirectDisplay;
+    d.daemon = 0;
+    return !d.uuid.empty();
   }
 };
 
@@ -69,11 +74,33 @@ void SaveSystem::Save(const std::list<Display> &displays) {
   for (const auto &d : displays)
     root["displays"].push_back(d);
 
-  std::ofstream out(configPath(), std::ios::trunc);
+  const std::string destination = configPath();
+  const std::string backup = destination + ".backup";
+  std::error_code backupError;
+  if (std::filesystem::exists(destination) &&
+      !std::filesystem::exists(backup)) {
+    std::filesystem::copy_file(
+        destination, backup,
+        std::filesystem::copy_options::none, backupError);
+  }
+  const std::string temporary =
+      destination + "." + std::to_string(getpid()) + ".tmp";
+  std::ofstream out(temporary, std::ios::trunc);
   if (!out) {
     return;
   }
   out << root;
+  out.flush();
+  if (!out.good()) {
+    out.close();
+    std::remove(temporary.c_str());
+    return;
+  }
+  out.close();
+
+  if (std::rename(temporary.c_str(), destination.c_str()) != 0) {
+    std::remove(temporary.c_str());
+  }
 }
 
 // ------------------------
@@ -86,15 +113,21 @@ std::list<Display> SaveSystem::Load() {
   if (!std::filesystem::exists(path))
     return result;
 
-  YAML::Node root = YAML::LoadFile(path);
+  YAML::Node root;
+  try {
+    root = YAML::LoadFile(path);
+  } catch (const YAML::Exception &error) {
+    NSLog(@"Unable to read display session file: %s", error.what());
+    return result;
+  }
 
   if (!root["displays"])
     return result;
 
   for (auto node : root["displays"]) {
-
-    Display d;
-    d = node.as<Display>();
+    Display d{};
+    if (!YAML::convert<Display>::decode(node, d))
+      continue;
     d.screen = DisplayIDFromUUID(d.uuid);
     result.push_back(d);
   }

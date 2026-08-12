@@ -30,8 +30,33 @@
 #include <cmath>
 #include <cstdlib>
 #include <float.h>
+#include <fcntl.h>
+#include <signal.h>
+#include <sys/file.h>
+#include <unistd.h>
 
 #include "../DisplayManager.h"
+
+static NSString *const kHostAppIdentifier = @"com.aiwallpaperengine.mac";
+static NSString *const kBatteryModeKey = @"performance.batteryModeEnabled";
+static NSString *const kLowPowerPauseKey = @"performance.pauseInLowPowerMode";
+static NSString *const kFullScreenPauseKey =
+    @"performance.pauseForFullScreenApps";
+static NSString *const kPerformanceSettingsChanged =
+    @"com.aiwallpaperengine.mac.performanceSettingsChanged";
+
+static id HostAppPreference(NSString *key) {
+  CFPreferencesAppSynchronize((__bridge CFStringRef)kHostAppIdentifier);
+  CFPropertyListRef value = CFPreferencesCopyAppValue(
+      (__bridge CFStringRef)key, (__bridge CFStringRef)kHostAppIdentifier);
+  return CFBridgingRelease(value);
+}
+
+static BOOL HostAppBoolPreference(NSString *key, BOOL fallback) {
+  id value = HostAppPreference(key);
+  return [value respondsToSelector:@selector(boolValue)] ? [value boolValue]
+                                                         : fallback;
+}
 
 @interface VideoWallpaperDaemon : NSObject
 @property(strong) NSMutableArray<NSWindow *> *windows;
@@ -56,6 +81,14 @@
 @property(nonatomic, assign) BOOL lowPowerModeEnabled;
 @property(nonatomic, assign) BOOL visibilityReductionActive;
 @property(nonatomic, assign) BOOL playbackPaused;
+@property(nonatomic, assign) BOOL batteryModeEnabled;
+@property(nonatomic, assign) BOOL pauseOnLowPowerMode;
+@property(nonatomic, assign) BOOL pauseForFullScreenApps;
+@property(nonatomic, assign) pid_t ownerPID;
+@property(nonatomic, assign) BOOL waitingForDisplay;
+@property(nonatomic, assign) NSRect lastScreenFrame;
+@property(nonatomic, assign) size_t lastPixelWidth;
+@property(nonatomic, assign) size_t lastPixelHeight;
 
 - (instancetype)initWithVideo:(NSString *)videoPath
                   frameOutput:(NSString *)framePath
@@ -64,6 +97,8 @@
                   targetUUID:(NSString *)uuid;
 - (void)checkAndUpdatePlaybackState;
 - (void)handleDisplayReconfiguration;
+- (void)releaseDisplayResources;
+- (void)reloadPerformancePreferences;
 NSScreen *ScreenForDisplayID(CGDirectDisplayID displayID);
 @end
 
@@ -104,6 +139,10 @@ static void DisplayReconfigCallback(CGDirectDisplayID display,
     _targetDisplayID = screenNumber != nil
                            ? (CGDirectDisplayID)screenNumber.unsignedIntValue
                            : kCGNullDirectDisplay;
+    _lastScreenFrame = targetScreen.frame;
+    _lastPixelWidth = CGDisplayPixelsWide(_targetDisplayID);
+    _lastPixelHeight = CGDisplayPixelsHigh(_targetDisplayID);
+    _waitingForDisplay = NO;
 
     if (uuid && uuid.length > 0) {
       _targetUUID = uuid;
@@ -116,6 +155,9 @@ static void DisplayReconfigCallback(CGDirectDisplayID display,
     _lowPowerModeEnabled = [self currentLowPowerModeState];
     _visibilityReductionActive = NO;
     _playbackPaused = NO;
+    _batteryModeEnabled = HostAppBoolPreference(kBatteryModeKey, YES);
+    _pauseOnLowPowerMode = HostAppBoolPreference(kLowPowerPauseKey, YES);
+    _pauseForFullScreenApps = HostAppBoolPreference(kFullScreenPauseKey, YES);
 
     CGDisplayRegisterReconfigurationCallback(DisplayReconfigCallback, (__bridge void *)self);
 
@@ -170,24 +212,61 @@ static void DisplayReconfigCallback(CGDirectDisplayID display,
 
   CGDirectDisplayID newID = DisplayIDFromUUID(std::string([_targetUUID UTF8String]));
   if (newID == kCGNullDirectDisplay) {
-    NSLog(@"[Daemon] Display UUID %@ not found after reconfiguration, waiting...", _targetUUID);
+    if (!_waitingForDisplay) {
+      NSLog(@"[Daemon] Display UUID %@ disconnected; releasing playback resources",
+            _targetUUID);
+      [self releaseDisplayResources];
+      _targetScreen = nil;
+      _targetDisplayID = kCGNullDirectDisplay;
+      _waitingForDisplay = YES;
+    }
     return;
   }
 
   NSScreen *newScreen = ScreenForDisplayID(newID);
   if (!newScreen) {
-    NSLog(@"[Daemon] No NSScreen for display ID %u after reconfiguration", newID);
+    if (!_waitingForDisplay) {
+      NSLog(@"[Daemon] Display UUID %@ is offline; releasing playback resources",
+            _targetUUID);
+      [self releaseDisplayResources];
+      _targetScreen = nil;
+      _targetDisplayID = kCGNullDirectDisplay;
+      _waitingForDisplay = YES;
+    }
     return;
   }
 
-  if (newID == _targetDisplayID && newScreen == _targetScreen) return;
+  NSRect newFrame = newScreen.frame;
+  size_t newPixelWidth = CGDisplayPixelsWide(newID);
+  size_t newPixelHeight = CGDisplayPixelsHigh(newID);
+  BOOL geometryUnchanged =
+      NSEqualRects(newFrame, _lastScreenFrame) &&
+      newPixelWidth == _lastPixelWidth &&
+      newPixelHeight == _lastPixelHeight;
+  if (!_waitingForDisplay && newID == _targetDisplayID &&
+      newScreen == _targetScreen && geometryUnchanged) {
+    return;
+  }
 
   NSLog(@"[Daemon] Display reconfigured: ID %u → %u, re-attaching to UUID %@",
         _targetDisplayID, newID, _targetUUID);
 
   _targetDisplayID = newID;
   _targetScreen = newScreen;
+  _lastScreenFrame = newFrame;
+  _lastPixelWidth = newPixelWidth;
+  _lastPixelHeight = newPixelHeight;
+  _waitingForDisplay = NO;
 
+  [self releaseDisplayResources];
+  [self setupWallpaperWithVideo:_videoPath];
+}
+
+- (void)releaseDisplayResources {
+  for (AVQueuePlayer *player in _players) {
+    [player pause];
+    [player removeAllItems];
+  }
   for (NSWindow *window in _windows) {
     [window setReleasedWhenClosed:YES];
     [window close];
@@ -196,8 +275,7 @@ static void DisplayReconfigCallback(CGDirectDisplayID display,
   [_players removeAllObjects];
   [_playerLayers removeAllObjects];
   [_loopers removeAllObjects];
-
-  [self setupWallpaperWithVideo:_videoPath];
+  _asset = nil;
 }
 
 - (void)setupWallpaperWithVideo:(NSString *)videoPath {
@@ -364,6 +442,10 @@ static void DisplayReconfigCallback(CGDirectDisplayID display,
   for (AVQueuePlayer *player in _players) {
     [player pause];
   }
+  if (![self setStaticWallpaper]) {
+    NSLog(@"[Daemon] Lock-screen wallpaper frame is not available yet: %@",
+          self.framePath);
+  }
 }
 
 - (void)screenUnlocked:(NSNotification *)note {
@@ -420,12 +502,24 @@ static void terminateWallpaperDaemonCallback(CFNotificationCenterRef center,
 }
 
 - (void)checkAndUpdatePlaybackState {
+  if (self.ownerPID > 1 && kill(self.ownerPID, 0) != 0) {
+    NSLog(@"[Daemon] Owner app %d is no longer running; exiting",
+          self.ownerPID);
+    [self terminateWallpaperDaemon];
+    return;
+  }
+
+  self.lowPowerModeEnabled = [self currentLowPowerModeState];
   BOOL screenLocked = self.screen_locked || [self isScreenLocked];
   self.screen_locked = screenLocked;
 
-  BOOL wallpaperHidden = NO;
+  BOOL wallpaperHidden =
+      self.pauseForFullScreenApps && [self isWallpaperHiddenOnTargetDisplay];
 
-  BOOL shouldPause = screenLocked || wallpaperHidden;
+  BOOL shouldPause =
+      screenLocked || wallpaperHidden ||
+      (self.pauseOnLowPowerMode &&
+       (self.lowPowerModeEnabled || [self isBatteryLevelLow]));
 
   if (!shouldPause && self.autoPauseEnabled) {
     shouldPause = ![self isFrontmostAppAllowed];
@@ -452,10 +546,14 @@ static void terminateWallpaperDaemonCallback(CFNotificationCenterRef center,
 }
 
 - (CGRect)targetDisplayBounds {
-  if (self.targetScreen)
-    return self.targetScreen.frame;
   if (self.targetDisplayID != kCGNullDirectDisplay)
     return CGDisplayBounds(self.targetDisplayID);
+  if (self.targetScreen) {
+    NSNumber *screenNumber =
+        self.targetScreen.deviceDescription[@"NSScreenNumber"];
+    if (screenNumber)
+      return CGDisplayBounds((CGDirectDisplayID)screenNumber.unsignedIntValue);
+  }
   NSScreen *fallback = [NSScreen mainScreen];
   return fallback ? fallback.frame : CGRectZero;
 }
@@ -464,33 +562,6 @@ static void terminateWallpaperDaemonCallback(CFNotificationCenterRef center,
   NSWindow *primaryWindow = _windows.firstObject;
   if (primaryWindow && !primaryWindow.isOnActiveSpace) {
     return YES;
-  }
-
-  if (primaryWindow) {
-    CGWindowID wallpaperWindowID = (CGWindowID)primaryWindow.windowNumber;
-    if (wallpaperWindowID != kCGNullWindowID) {
-      CFArrayRef aboveWindows =
-          CGWindowListCopyWindowInfo(kCGWindowListOptionOnScreenAboveWindow |
-                                         kCGWindowListExcludeDesktopElements,
-                                     wallpaperWindowID);
-      if (aboveWindows) {
-        CFIndex aboveCount = CFArrayGetCount(aboveWindows);
-        if (aboveCount > 0) {
-          CFDictionaryRef topWindow =
-              (CFDictionaryRef)CFArrayGetValueAtIndex(aboveWindows, 0);
-          NSDictionary *info = (__bridge NSDictionary *)topWindow;
-          NSString *owner =
-              info[(NSString *)kCGWindowOwnerName] ?: @"<unknown>";
-          NSString *name = info[(NSString *)kCGWindowName] ?: @"<unnamed>";
-          NSLog(@"[Visibility] Windows above wallpaper detected. Top owner=%@ "
-                @"name=%@",
-                owner, name);
-          CFRelease(aboveWindows);
-          return YES;
-        }
-        CFRelease(aboveWindows);
-      }
-    }
   }
 
   CGRect targetFrame = [self targetDisplayBounds];
@@ -530,7 +601,7 @@ static void terminateWallpaperDaemonCallback(CFNotificationCenterRef center,
       continue;
     }
 
-    if ([ownerName isEqualToString:@"LiveWallpaper"] ||
+    if ([ownerName isEqualToString:@"AIWallpaperEngineMac"] ||
         [ownerName isEqualToString:@"wallpaperdaemon"]) {
       continue;
     }
@@ -646,6 +717,37 @@ static void terminateWallpaperDaemonCallback(CFNotificationCenterRef center,
   return NO;
 }
 
+- (BOOL)isBatteryLevelLow {
+  CFTypeRef info = IOPSCopyPowerSourcesInfo();
+  if (!info)
+    return NO;
+  CFArrayRef sources = IOPSCopyPowerSourcesList(info);
+  if (!sources) {
+    CFRelease(info);
+    return NO;
+  }
+
+  BOOL batteryIsLow = NO;
+  CFIndex count = CFArrayGetCount(sources);
+  for (CFIndex index = 0; index < count; ++index) {
+    CFTypeRef source = CFArrayGetValueAtIndex(sources, index);
+    CFDictionaryRef description = IOPSGetPowerSourceDescription(info, source);
+    if (!description)
+      continue;
+    NSDictionary *details = (__bridge NSDictionary *)description;
+    NSNumber *current = details[@kIOPSCurrentCapacityKey];
+    NSNumber *maximum = details[@kIOPSMaxCapacityKey];
+    if (current && maximum && maximum.doubleValue > 0 &&
+        current.doubleValue / maximum.doubleValue <= 0.20) {
+      batteryIsLow = YES;
+      break;
+    }
+  }
+  CFRelease(sources);
+  CFRelease(info);
+  return batteryIsLow;
+}
+
 - (void)powerStateDidChange:(NSNotification *)notification {
   self.runningOnBattery = [self isRunningOnBatteryPower];
   self.lowPowerModeEnabled = [self currentLowPowerModeState];
@@ -671,7 +773,8 @@ static void terminateWallpaperDaemonCallback(CFNotificationCenterRef center,
   self.lowPowerModeEnabled = lowPower;
   self.visibilityReductionActive = visibilityReduction;
 
-  BOOL reduce = battery || lowPower || visibilityReduction;
+  BOOL reduce =
+      (self.batteryModeEnabled && battery) || lowPower || visibilityReduction;
 
   if (reduce != self.reducedPerformanceMode || stateChanged) {
     self.reducedPerformanceMode = reduce;
@@ -680,6 +783,19 @@ static void terminateWallpaperDaemonCallback(CFNotificationCenterRef center,
           lowPower ? @"YES" : @"NO", visibilityReduction ? @"YES" : @"NO");
     [self applyPerformanceSettings];
   }
+}
+
+- (void)reloadPerformancePreferences {
+  self.batteryModeEnabled = HostAppBoolPreference(kBatteryModeKey, YES);
+  self.pauseOnLowPowerMode = HostAppBoolPreference(kLowPowerPauseKey, YES);
+  self.pauseForFullScreenApps =
+      HostAppBoolPreference(kFullScreenPauseKey, YES);
+  NSLog(@"[Daemon] Performance settings updated (battery=%@, lowPowerPause=%@, "
+        @"fullScreenPause=%@)",
+        self.batteryModeEnabled ? @"YES" : @"NO",
+        self.pauseOnLowPowerMode ? @"YES" : @"NO",
+        self.pauseForFullScreenApps ? @"YES" : @"NO");
+  [self checkAndUpdatePlaybackState];
 }
 
 - (void)applyPerformanceSettings {
@@ -770,7 +886,7 @@ static void terminateWallpaperDaemonCallback(CFNotificationCenterRef center,
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{
     allowedBundleIDs = [NSSet
-        setWithArray:@[ @"com.apple.finder", @"com.thusvill.LiveWallpaper" ]];
+        setWithArray:@[ @"com.apple.finder", @"com.aiwallpaperengine.mac" ]];
   });
 
   return [allowedBundleIDs containsObject:front.bundleIdentifier];
@@ -952,6 +1068,13 @@ static void AutoPauseChangedCallback(CFNotificationCenterRef center,
   [daemon setAutoPauseEnabled:enabled];
 }
 
+static void PerformanceSettingsChangedCallback(
+    CFNotificationCenterRef center, void *observer, CFStringRef name,
+    const void *object, CFDictionaryRef userInfo) {
+  VideoWallpaperDaemon *daemon = (__bridge VideoWallpaperDaemon *)observer;
+  [daemon reloadPerformancePreferences];
+}
+
 NSScreen *ScreenForDisplayID(CGDirectDisplayID displayID) {
   for (NSScreen *screen in [NSScreen screens]) {
     NSDictionary *screenDict = [screen deviceDescription];
@@ -966,6 +1089,7 @@ NSScreen *ScreenForDisplayID(CGDirectDisplayID displayID) {
 float volume;
 int main(int argc, const char *argv[]) {
   __attribute__((objc_precise_lifetime)) VideoWallpaperDaemon *daemon = nil;
+  static int displayLockFD = -1;
 
   @autoreleasepool {
     [NSApplication sharedApplication];
@@ -997,6 +1121,31 @@ int main(int argc, const char *argv[]) {
       }
     }
 
+    if (targetUUID.length > 0) {
+      NSString *lockDirectory = [NSTemporaryDirectory()
+          stringByAppendingPathComponent:@"AIWallpaperEngineMac"];
+      [[NSFileManager defaultManager]
+          createDirectoryAtPath:lockDirectory
+    withIntermediateDirectories:YES
+                     attributes:nil
+                          error:nil];
+      NSString *lockPath = [lockDirectory stringByAppendingPathComponent:
+          [NSString stringWithFormat:@"display-%@.lock", targetUUID]];
+      displayLockFD = open(lockPath.fileSystemRepresentation, O_CREAT | O_RDWR,
+                           S_IRUSR | S_IWUSR);
+      if (displayLockFD < 0 || flock(displayLockFD, LOCK_EX) != 0) {
+        NSLog(@"[Daemon] Unable to acquire display lock %@", lockPath);
+        return 2;
+      }
+      ftruncate(displayLockFD, 0);
+      dprintf(displayLockFD, "%d\n", getpid());
+    }
+
+    pid_t ownerPID = 0;
+    if (argc >= 7) {
+      ownerPID = (pid_t)strtol(argv[6], NULL, 10);
+    }
+
     volume = atof(argv[3]);
     [[NSUserDefaults standardUserDefaults] setFloat:volume
                                              forKey:@"wallpapervolume"];
@@ -1006,6 +1155,7 @@ int main(int argc, const char *argv[]) {
                                              scalingMode:scaleMode
                                             targetScreen:targetScreen
                                              targetUUID:targetUUID];
+    daemon.ownerPID = ownerPID;
 
     CFNotificationCenterAddObserver(
         CFNotificationCenterGetDarwinNotifyCenter(),
@@ -1035,6 +1185,12 @@ int main(int argc, const char *argv[]) {
         CFNotificationCenterGetDarwinNotifyCenter(),
         (__bridge const void *)daemon, scaleModeChangeCallback,
         CFSTR("com.live.wallpaper.scaleModeChanged"), NULL,
+        CFNotificationSuspensionBehaviorDeliverImmediately);
+
+    CFNotificationCenterAddObserver(
+        CFNotificationCenterGetDarwinNotifyCenter(),
+        (__bridge const void *)daemon, PerformanceSettingsChangedCallback,
+        (__bridge CFStringRef)kPerformanceSettingsChanged, NULL,
         CFNotificationSuspensionBehaviorDeliverImmediately);
 
   }

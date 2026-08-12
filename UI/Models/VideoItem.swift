@@ -2,15 +2,57 @@ import AppKit
 import Combine
 import Foundation
 
+enum WallpaperMediaKind: String, Sendable {
+    case video
+    case image
+    case gif
+    case livePhoto
+}
+
 struct VideoItem: Identifiable {
     let id = UUID()
     let filename: String
     let path: String
     let thumbnailPath: String
+    let kind: WallpaperMediaKind
+    let thumbnailSourcePath: String?
     var quality: String?
 
+    var formatLabel: String {
+        switch kind {
+        case .video:
+            return (filename as NSString).pathExtension.uppercased()
+        case .image:
+            return (filename as NSString).pathExtension.uppercased()
+        case .gif:
+            return "GIF"
+        case .livePhoto:
+            return "LIVE PHOTO"
+        }
+    }
+
+    var qualitySourceURL: URL? {
+        switch kind {
+        case .video:
+            return URL(fileURLWithPath: path)
+        case .image:
+            return nil
+        case .livePhoto:
+            return LivePhotoResourceResolver.resolveVideoURL(
+                for: URL(fileURLWithPath: path)
+            )
+        case .gif:
+            return nil
+        }
+    }
+
     func loadThumbnail() -> NSImage? {
-        ThumbnailCache.shared.image(for: thumbnailPath)
+        if let thumbnailSourcePath,
+            let image = NSImage(contentsOfFile: thumbnailSourcePath)
+        {
+            return image
+        }
+        return ThumbnailCache.shared.image(for: thumbnailPath)
     }
 }
 

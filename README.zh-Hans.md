@@ -1,84 +1,90 @@
-> [!NOTE]
-> ## 我将把 Objective C++ 的 UI 逐步改造成 SwiftUI，但 `daemon` 不会改变。
+# AIWallpaperEngineMac
 
-# macOS 14+ 动态壁纸应用 LiveWallpaper
+让你的 Mac 桌面，多一点属于自己的感觉。
 
 **语言：** [English](README.md) | 简体中文
 
-![Roller](./asset/livewall.png)
+AIWallpaperEngineMac 是一款原生 macOS 动态壁纸应用。你可以把喜欢的视频、照片、GIF、Live Photo、网页场景或实时特效放到桌面上，让它在工作、学习和休息时安静地陪着你。
 
-这是一个面向 macOS 14+ 的开源动态壁纸应用。
+它关心的是每天真的会遇到的细节：多块屏幕可以各自不同、视频稳定循环、电池模式不拖累续航、设置不打扰使用。生成壁纸只是其中一个可选工具，而不是这款软件的全部。
 
-## 使用 Homebrew 安装
+## 主要能力
 
-在终端运行：`brew tap thusvill/livewallpaper && brew install --cask livewallpaper`
+- 每块显示器独立壁纸会话，并支持显示器热插拔恢复。
+- MP4/MOV 视频、GIF、Live Photo 和静态图片壁纸。
+- 网页壁纸渲染与可配置在线壁纸目录。
+- Metal Shader 与粒子壁纸基础能力。
+- 电池、低电量、全屏场景和目标帧率的性能控制。
+- 可选的本地音频与系统音频分析，用于音乐响应式特效。
+- 可选 OpenAI 和火山引擎生图服务，密钥保存在 macOS 钥匙串中。
 
-## 从源码编译安装
+## 它能做什么
 
-- macOS 14+
-- git
-- Xcode
-- CMake
+- **视频：** MP4、MOV 稳定循环播放。
+- **图片：** 本地静态图片、GIF 和 Live Photo。
+- **网页：** 本地或在线网页壁纸。
+- **特效：** Metal Shader、粒子场景和音乐响应式效果。
+- **在线壁纸：** 可选的视频和图片壁纸目录。
+- **生成壁纸：** 可通过用户自行配置的服务，根据描述生成壁纸。
 
-运行：
-`git clone https://github.com/thusvill/LiveWallpaperMacOS.git && cd LiveWallpaperMacOS && mkdir -p build && cd build && cmake .. && make -j$(sysctl -n hw.ncpu)`
+## 一起把它做完整
 
-## DMG 安装指南
+这不是一个只靠一个人就能做完的项目。如果你喜欢 macOS、视觉设计、Shader、媒体播放，或者只是对“理想的动态壁纸软件”有自己的想法，都欢迎加入。
 
-> [!IMPORTANT]
-> ## 修复 “LiveWallpaper.app” 已损坏，无法打开。建议你将该对象移到废纸篓。
-> 将应用安装到 Applications 文件夹后，你需要绕过 Gatekeeper 才能运行（因为我不想为开源应用给 Apple 付费）。
->
-> 这也会解决占用问题：
->
-> `xattr -d com.apple.quarantine /Applications/LiveWallpaper.app`
+- 在 GitHub Issues 分享问题、建议和真实使用场景。
+- 通过 Pull Request 改善界面、翻译、性能或兼容性。
+- 制作并分享壁纸包、Shader 和在线目录来源。
+- 和大家一起，把 AIWallpaperEngineMac 做成更完整、更好用的 macOS 动态壁纸引擎。
 
-点击 “OpenInFinder” 按钮会打开一个文件夹，你可以把壁纸文件放进去。
+请确保提交的内容尊重版权、来源清楚，也尊重用户隐私。
 
-> [!NOTE]
-> 文件名中不要包含多个点号（扩展名的点号除外）！
->
-> ## 例如：
->
-> - file.1920x1080.mp4 ❌（点号数量 > 1）
-> - file-1920x1080.mp4 ✅（点号数量 = 1）
+## 环境要求
 
-> [!NOTE]
-> 目前支持 `.mp4` 和 `.mov`
+- macOS 14 或更高版本
+- Xcode 15 或更高版本
+- 推荐 Apple Silicon 设备，以获得更好的 Metal 和视频性能。
 
-> https://github.com/user-attachments/assets/3d82e07d-b6b9-4a7d-b6de-5dd05dff3128
+## 从源码运行
 
-## 图库
+1. 克隆本仓库。
+2. 使用 Xcode 打开仓库内的工程文件。
+3. 选择应用 Scheme，并在“我的 Mac”上运行。
 
-> ![Application](./asset/application.png)
+编译后的应用为 `AIWallpaperEngineMac.app`。为了保持源码兼容，部分工程和 Target 内部标识仍保留上游名称；产品名称和用户界面统一使用 AIWallpaperEngineMac。项目保留 Objective-C++ 兼容层，新的界面与核心模块以 Swift 和 SwiftUI 实现。
 
-> ## 这是静态图片，目前 LiveWallpaper 不支持锁屏播放视频。
-> ![lockscreen](./asset/lockscreen.png)
+## 系统权限
 
-> ![settings](./asset/settings.png)
+按启用的壁纸或效果不同，macOS 可能请求：
 
-> https://github.com/user-attachments/assets/36fb169e-b7cc-4489-9459-dab07c8dd2c6
+- **屏幕录制**：用于系统音频响应式特效。
+- **辅助功能**：仅用于可选的高级桌面互动。
 
-> # 性能
-> ![p1](./asset/preformance1.png)
-> ![p2](./asset/preformance2.png)
-> ![p3](./asset/preformance3.png)
-> # 多显示器支持
+普通壁纸模式不会拦截桌面图标点击。
 
-> https://github.com/user-attachments/assets/9575873c-79e6-4eba-a7a5-9408b2cc4ed0
+## 架构
 
-<!--
-## 图库
-> <img width="185" height="134" alt="Screenshot 2025-11-30 at 1 52 01 PM" src="https://github.com/user-attachments/assets/0c91fb29-e729-485b-8f93-7080aed68881" />
-> <img width="185" height="134" alt="Screenshot 2025-11-30 at 1 51 53 PM" src="https://github.com/user-attachments/assets/7848d2fd-8cc4-4271-a4c0-2868bdf00422" />
+```
+UI（SwiftUI）
+  -> Core（WallpaperEngine / WallpaperSession / Settings）
+  -> Display（DisplayManager / ScreenController）
+  -> Renderer（视频 / 图片 / GIF / Live Photo / 网页 / Metal / 粒子）
+  -> macOS API（AppKit、AVFoundation、Metal、ScreenCaptureKit）
+```
 
-> ![Screenshot 2025-05-15 at 6 46 35 AM](https://github.com/user-attachments/assets/167b0c08-454f-4d53-9e65-8798aed6459f)
+## 许可证与声明
 
-> <img width="2560" height="1600" alt="Screenshot 2025-11-30 at 1 52 34 PM" src="https://github.com/user-attachments/assets/79a24ed8-cc5a-4246-87d0-9c93e04766f2" />
+本仓库采用 GNU General Public License v3.0 或更高版本，详见 [LICENSE](LICENSE)。
 
-> <img width="2560" height="1600" alt="Screenshot 2025-11-30 at 1 54 35 PM" src="https://github.com/user-attachments/assets/10466b02-77d5-4814-9fb7-a865e62a41ba" />
+本项目基于 GPL 上游代码演进，保留相应的许可证与署名义务。第三方参考与组件声明见 [ThirdPartyNotices.md](ThirdPartyNotices.md)。
 
-> https://github.com/user-attachments/assets/748c7078-1f99-4182-876f-08aa59d2bc63
--->
+## 支持项目
 
-许可协议请参见 [LICENSE](LICENSE)。
+如果它让你的桌面更合心意，欢迎通过以下方式支持后续开发。谢谢你的认可，它会让这个项目继续往前走。
+
+<table>
+  <tr>
+    <td align="center"><strong>微信赞赏</strong><br><img src="asset/support/wechat-appreciation.jpg" width="220" alt="微信赞赏码"></td>
+    <td align="center"><strong>支付宝</strong><br><img src="asset/support/alipay-appreciation.jpg" width="220" alt="支付宝收款码"></td>
+    <td align="center"><strong>PayPal</strong><br><img src="asset/support/paypal-appreciation.jpg" width="220" alt="PayPal 收款码"></td>
+  </tr>
+</table>

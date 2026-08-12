@@ -13,9 +13,10 @@ final class WallpaperViewModel: ObservableObject {
     @Published var pauseOnAppFocus = true
     @Published var volume = 50.0
     @Published var vinttageBar = true
+    @Published private(set) var activeShaderPreset: MetalShaderPreset?
+    @Published private(set) var isParticleDemoActive = false
+    @Published private(set) var rendererErrorMessage: String?
 
-    private var currentReloadID = UUID()
-    private let reloadIDLock = NSLock()
     private let defaults = UserDefaults.standard
 
     let engine: AIWallpaperEngine
@@ -43,55 +44,72 @@ final class WallpaperViewModel: ObservableObject {
         engine.checkFolderPath()
         ThumbnailCache.shared.clearCache()
 
-        guard let files = try? FileManager.default.contentsOfDirectory(atPath: folderPath) else {
+        let folderURL = URL(fileURLWithPath: folderPath, isDirectory: true)
+        guard let sourceURLs = try? FileManager.default.contentsOfDirectory(
+            at: folderURL,
+            includingPropertiesForKeys: [.isDirectoryKey, .isRegularFileKey],
+            options: [.skipsHiddenFiles]
+        ) else {
+            videos = []
             return
         }
 
-        let videoFiles = files.filter {
-            let fileExtension = ($0 as NSString).pathExtension.lowercased()
-            return fileExtension == "mp4" || fileExtension == "mov"
-        }
-
-        let reloadID = UUID()
-        reloadIDLock.lock()
-        currentReloadID = reloadID
-        reloadIDLock.unlock()
-
-        let sourceFolder = folderPath
         let thumbnailFolder = engine.thumbnailCachePath()
+        let livePhotoSources = sourceURLs.filter {
+            LivePhotoResourceResolver.isLivePhotoSource($0)
+        }
+        let pairedVideoPaths = Set(
+            livePhotoSources.compactMap {
+                LivePhotoResourceResolver.resolveVideoURL(for: $0)?.standardizedFileURL.path
+            }
+        )
 
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            guard let self else { return }
+        let newMedia = sourceURLs.compactMap { sourceURL -> VideoItem? in
+            let fileExtension = sourceURL.pathExtension.lowercased()
+            let kind: WallpaperMediaKind
+            let thumbnailSourcePath: String?
 
-            let newVideos = videoFiles.map { filename in
-                let fullPath = (sourceFolder as NSString).appendingPathComponent(filename)
-                let baseName = (filename as NSString).deletingPathExtension
-                let thumbnailPath = (thumbnailFolder as NSString)
-                    .appendingPathComponent("\(baseName).png")
-                return VideoItem(
-                    filename: filename,
-                    path: fullPath,
-                    thumbnailPath: thumbnailPath
-                )
+            if livePhotoSources.contains(sourceURL) {
+                kind = .livePhoto
+                thumbnailSourcePath = LivePhotoResourceResolver
+                    .resolveStillImageURL(for: sourceURL)?.path
+            } else if ["jpg", "jpeg", "png"].contains(fileExtension) {
+                kind = .image
+                thumbnailSourcePath = sourceURL.path
+            } else if fileExtension == "gif" {
+                kind = .gif
+                thumbnailSourcePath = sourceURL.path
+            } else if ["mp4", "mov"].contains(fileExtension),
+                !pairedVideoPaths.contains(sourceURL.standardizedFileURL.path)
+            {
+                kind = .video
+                thumbnailSourcePath = nil
+            } else {
+                return nil
             }
 
-            DispatchQueue.main.async { [weak self] in
-                guard let self else { return }
+            let baseName = sourceURL.deletingPathExtension().lastPathComponent
+            let thumbnailPath = (thumbnailFolder as NSString)
+                .appendingPathComponent("\(baseName).png")
+            return VideoItem(
+                filename: sourceURL.lastPathComponent,
+                path: sourceURL.path,
+                thumbnailPath: thumbnailPath,
+                kind: kind,
+                thumbnailSourcePath: thumbnailSourcePath
+            )
+        }
+        .sorted {
+            $0.filename.localizedStandardCompare($1.filename) == .orderedAscending
+        }
 
-                self.reloadIDLock.lock()
-                let isValid = reloadID == self.currentReloadID
-                self.reloadIDLock.unlock()
-                guard isValid else { return }
+        videos = newMedia
+        loadQualityBadges(for: newMedia)
 
-                self.videos = newVideos
-                self.loadQualityBadges(for: newVideos)
-
-                if newVideos.contains(where: { $0.loadThumbnail() == nil }) {
-                    self.engine.generateThumbnails(forFolder: sourceFolder) {
-                        DispatchQueue.main.async {
-                            ThumbnailCache.shared.clearCache()
-                        }
-                    }
+        if newMedia.contains(where: { $0.kind == .video && $0.loadThumbnail() == nil }) {
+            engine.generateThumbnails(forFolder: folderPath) {
+                DispatchQueue.main.async {
+                    ThumbnailCache.shared.clearCache()
                 }
             }
         }
@@ -107,8 +125,56 @@ final class WallpaperViewModel: ObservableObject {
                 withPath: video.path,
                 onDisplays: displays.map { NSNumber(value: $0) }
             )
+            activeShaderPreset = nil
+            isParticleDemoActive = false
+            rendererErrorMessage = nil
         } catch {
+            rendererErrorMessage = error.localizedDescription
             NSLog("Unable to start wallpaper: \(error.localizedDescription)")
+        }
+    }
+
+    func startMetalEffect(_ preset: MetalShaderPreset, displays: [UInt32]) {
+        do {
+            try engine.startMetalWallpaper(
+                preset: preset,
+                onDisplays: displays.map { NSNumber(value: $0) }
+            )
+            activeShaderPreset = preset
+            isParticleDemoActive = false
+            rendererErrorMessage = nil
+        } catch {
+            rendererErrorMessage = error.localizedDescription
+            NSLog("Unable to start Metal wallpaper: \(error.localizedDescription)")
+        }
+    }
+
+    func startParticleDemo(displays: [UInt32]) {
+        do {
+            try engine.startParticleWallpaper(
+                onDisplays: displays.map { NSNumber(value: $0) }
+            )
+            activeShaderPreset = nil
+            isParticleDemoActive = true
+            rendererErrorMessage = nil
+        } catch {
+            rendererErrorMessage = error.localizedDescription
+            NSLog("Unable to start particle wallpaper: \(error.localizedDescription)")
+        }
+    }
+
+    func startWebWallpaper(sourceURL: URL, displays: [UInt32]) {
+        do {
+            try engine.startWebWallpaper(
+                with: sourceURL,
+                onDisplays: displays.map { NSNumber(value: $0) }
+            )
+            activeShaderPreset = nil
+            isParticleDemoActive = false
+            rendererErrorMessage = nil
+        } catch {
+            rendererErrorMessage = error.localizedDescription
+            NSLog("Unable to start web wallpaper: \(error.localizedDescription)")
         }
     }
 
@@ -130,7 +196,8 @@ final class WallpaperViewModel: ObservableObject {
 
     private func loadQualityBadges(for videos: [VideoItem]) {
         for video in videos {
-            engine.videoQualityBadge(for: URL(fileURLWithPath: video.path)) { [weak self] badge in
+            guard let qualitySourceURL = video.qualitySourceURL else { continue }
+            engine.videoQualityBadge(for: qualitySourceURL) { [weak self] badge in
                 DispatchQueue.main.async {
                     guard let self,
                         let index = self.videos.firstIndex(where: { $0.id == video.id })

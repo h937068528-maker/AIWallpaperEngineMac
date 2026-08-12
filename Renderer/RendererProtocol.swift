@@ -6,9 +6,30 @@ struct RendererRequest: Sendable {
     let displayIDs: [CGDirectDisplayID]
 }
 
+enum MetalShaderPreset: String, CaseIterable, Identifiable, Sendable {
+    case particles
+    case water
+    case interactive
+
+    var id: String { rawValue }
+
+    var sourceURL: URL {
+        URL(string: "shader://\(rawValue)")!
+    }
+
+    init?(sourceURL: URL) {
+        guard sourceURL.scheme == "shader" else { return nil }
+        self.init(rawValue: sourceURL.host ?? sourceURL.lastPathComponent)
+    }
+}
+
 enum RendererError: LocalizedError {
     case unsupportedSource(URL)
     case rendererUnavailable(String)
+    case metalUnavailable
+    case shaderCompilationFailed(String)
+    case invalidAnimatedImage(URL)
+    case missingLivePhotoVideo(URL)
 
     var errorDescription: String? {
         switch self {
@@ -16,6 +37,14 @@ enum RendererError: LocalizedError {
             return "No renderer supports \(url.lastPathComponent)."
         case .rendererUnavailable(let identifier):
             return "Renderer \(identifier) is unavailable."
+        case .metalUnavailable:
+            return "Metal is unavailable on this Mac."
+        case .shaderCompilationFailed(let message):
+            return "Metal shader compilation failed: \(message)"
+        case .invalidAnimatedImage(let url):
+            return "Unable to decode animated image \(url.lastPathComponent)."
+        case .missingLivePhotoVideo(let url):
+            return "Live Photo \(url.lastPathComponent) is missing its paired MOV file."
         }
     }
 }

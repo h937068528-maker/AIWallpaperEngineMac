@@ -51,6 +51,15 @@ static BOOL ProcessUsesExecutable(pid_t pid, NSString *expectedPath) {
       isEqualToString:expectedPath.stringByStandardizingPath];
 }
 
+static void TerminateLegacyWallpaperDaemons(void) {
+  CFNotificationCenterPostNotification(
+      CFNotificationCenterGetDarwinNotifyCenter(),
+      CFSTR("com.live.wallpaper.terminate"), NULL, NULL, true);
+  // Give legacy processes time to close their desktop windows before sessions
+  // are restored from the shared per-display configuration.
+  usleep(200000);
+}
+
 @implementation WallpaperEngine {
 @private
   dispatch_queue_t _wallpaperQueue;
@@ -75,9 +84,9 @@ static BOOL ProcessUsesExecutable(pid_t pid, NSString *expectedPath) {
     _currentVideoPath = nil;
     _daemonPIDs = std::list<pid_t>();
 
-    _wallpaperQueue = dispatch_queue_create("com.livewallpaper.wallpaperQueue",
+    _wallpaperQueue = dispatch_queue_create("com.aiwallpaperengine.mac.wallpaperQueue",
                                             DISPATCH_QUEUE_CONCURRENT);
-    _thumbnailQueue = dispatch_queue_create("com.livewallpaper.thumbnailQueue",
+    _thumbnailQueue = dispatch_queue_create("com.aiwallpaperengine.mac.thumbnailQueue",
                                             DISPATCH_QUEUE_SERIAL);
 
     _wallpaperSemaphore = dispatch_semaphore_create(2);
@@ -86,6 +95,7 @@ static BOOL ProcessUsesExecutable(pid_t pid, NSString *expectedPath) {
       
     displays = SaveSystem::Load();
     ScanDisplays();
+    TerminateLegacyWallpaperDaemons();
     [self killAllDaemons];
 
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
@@ -106,7 +116,9 @@ static BOOL ProcessUsesExecutable(pid_t pid, NSString *expectedPath) {
       
 
     for (Display display : displays) {
-      CGDirectDisplayID displayID = DisplayIDFromUUID(display.uuid);
+      if (display.screen == kCGNullDirectDisplay)
+        continue;
+      CGDirectDisplayID displayID = display.screen;
       if ([defaults boolForKey:@"random"]) {
         [self randomWallpapersLid];
       } else {
@@ -130,8 +142,9 @@ static BOOL ProcessUsesExecutable(pid_t pid, NSString *expectedPath) {
 
   for (Display display : displays) {
 
-    if (!display.videoPath.empty()) {
-      CGDirectDisplayID displayID = DisplayIDFromUUID(display.uuid);
+    if (display.screen != kCGNullDirectDisplay &&
+        !display.videoPath.empty()) {
+      CGDirectDisplayID displayID = display.screen;
 
       [self startWallpaperWithPath:
                 [self getRandomVideoFileFromFolder:[self getFolderPath]]
@@ -223,18 +236,35 @@ static BOOL ProcessUsesExecutable(pid_t pid, NSString *expectedPath) {
 - (void)screensDidChange:(NSNotification *)note {
 
   NSLog(@"Screens changed");
-    ScanDisplays();
-    for (Display display : displays) {
+  ScanDisplays();
 
-      if (!display.videoPath.empty()) {
-        CGDirectDisplayID displayID = DisplayIDFromUUID(display.uuid);
+  NSString *activeRenderer = [[NSUserDefaults standardUserDefaults]
+      stringForKey:@"wallpaper.activeRendererIdentifier"];
+  if (activeRenderer.length > 0 &&
+      ![activeRenderer isEqualToString:@"video.avfoundation"]) {
+    return;
+  }
 
-        [self startWallpaperWithPath:_currentVideoPath
-                          onDisplays:@[ @(displayID) ]];
-      }
-    }
-    
-    
+  NSString *daemonPath = [[[NSBundle mainBundle] bundlePath]
+      stringByAppendingPathComponent:@"Contents/MacOS/wallpaperdaemon"];
+  for (Display &display : displays) {
+    if (display.screen == kCGNullDirectDisplay || display.videoPath.empty())
+      continue;
+    if (ProcessUsesExecutable(display.daemon, daemonPath))
+      continue;
+
+    display.daemon = 0;
+    NSString *videoPath =
+        [NSString stringWithUTF8String:display.videoPath.c_str()];
+    NSString *framePath =
+        [NSString stringWithUTF8String:display.framePath.c_str()];
+    if (![[NSFileManager defaultManager] fileExistsAtPath:videoPath])
+      continue;
+
+    [self launchDaemonOnScreen:videoPath
+                     imagePath:framePath
+                     displayID:display.screen];
+  }
 }
 
 - (NSString *)thumbnailCachePath {
@@ -245,7 +275,7 @@ static BOOL ProcessUsesExecutable(pid_t pid, NSString *expectedPath) {
       [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"];
 
   if (!bundleName || bundleName.length == 0) {
-    bundleName = @"LiveWallpaper";
+    bundleName = @"AIWallpaperEngineMac";
   }
 
   NSString *thumbnailPath = [systemCacheDir
@@ -272,7 +302,7 @@ static BOOL ProcessUsesExecutable(pid_t pid, NSString *expectedPath) {
       [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"];
 
   if (!bundleName || bundleName.length == 0) {
-    bundleName = @"LiveWallpaper";
+    bundleName = @"AIWallpaperEngineMac";
   }
 
   NSString *wallpapersPath = [systemCacheDir
@@ -907,12 +937,12 @@ static BOOL ProcessUsesExecutable(pid_t pid, NSString *expectedPath) {
 - (BOOL)enableAppAsLoginItem {
   NSString *agentPath = [NSHomeDirectory()
       stringByAppendingPathComponent:
-          @"Library/LaunchAgents/com.thusvill.LiveWallpaper.plist"];
+          @"Library/LaunchAgents/com.aiwallpaperengine.mac.plist"];
 
   NSString *execPath = [[NSBundle mainBundle] executablePath];
 
   NSDictionary *plist = @{
-    @"Label" : @"com.thusvill.LiveWallpaper",
+    @"Label" : @"com.aiwallpaperengine.mac",
     @"ProgramArguments" : @[ execPath ],
     @"RunAtLoad" : @YES,
     @"KeepAlive" : @NO
@@ -955,20 +985,22 @@ static BOOL ProcessUsesExecutable(pid_t pid, NSString *expectedPath) {
   self.currentVideoPath = videoPath;
   NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
   [defaults setObject:videoPath forKey:@"LastWallpaperPath"];
+  [defaults setObject:@"video.avfoundation"
+               forKey:@"wallpaper.activeRendererIdentifier"];
   [defaults synchronize];
 
   const char *videoPathCStr = [videoPath UTF8String];
   std::string videoPathStr(videoPathCStr);
-  std::filesystem::path p(videoPathStr);
-  std::string videoName = p.stem().string();
 
   if (!fs::exists(videoPathStr)) {
     NSLog(@"Video file does not exist: %@", videoPath);
     return;
   }
 
-  NSString *imageFilename =
-      [NSString stringWithFormat:@"%s.png", videoName.c_str()];
+  // Keep the cache name in NSString. Converting a Unicode filename through
+  // std::filesystem and `%s` can produce a different path for the daemon.
+  NSString *imageFilename = [[[videoPath lastPathComponent]
+      stringByDeletingPathExtension] stringByAppendingPathExtension:@"png"];
   NSString *imagePath = [[self staticWallpaperCachePath]
       stringByAppendingPathComponent:imageFilename];
 
@@ -1014,6 +1046,8 @@ static BOOL ProcessUsesExecutable(pid_t pid, NSString *expectedPath) {
   float volume =
       [[NSUserDefaults standardUserDefaults] floatForKey:@"wallpapervolume"];
   NSString *volumeStr = [NSString stringWithFormat:@"%.2f", volume];
+  NSString *ownerPIDStr =
+      [NSString stringWithFormat:@"%d", [[NSProcessInfo processInfo] processIdentifier]];
   NSString *scaleMode =
       [[NSUserDefaults standardUserDefaults] stringForKey:@"scale_mode"];
 
@@ -1043,6 +1077,7 @@ static BOOL ProcessUsesExecutable(pid_t pid, NSString *expectedPath) {
                         [volumeStr UTF8String],
                         [scaleMode UTF8String],
                         displayID ? display.c_str() : "",
+                        [ownerPIDStr UTF8String],
                         NULL};
 
   pid_t pid;
@@ -1070,8 +1105,8 @@ static BOOL ProcessUsesExecutable(pid_t pid, NSString *expectedPath) {
   for (Display &display : displays) {
     if (ProcessUsesExecutable(display.daemon, daemonPath)) {
       ownedPIDs.insert(display.daemon);
-      display.daemon = 0;
     }
+    display.daemon = 0;
   }
 
   for (pid_t pid : ownedPIDs) {
@@ -1104,7 +1139,7 @@ static BOOL ProcessUsesExecutable(pid_t pid, NSString *expectedPath) {
              URLsForDirectory:NSCachesDirectory
                     inDomains:NSUserDomainMask].firstObject path];
 
-    path = [cacheDir stringByAppendingPathComponent:@"LiveWallpaper"];
+    path = [cacheDir stringByAppendingPathComponent:@"AIWallpaperEngineMac"];
 
     [defaults setObject:path forKey:@"WallpaperFolder"];
     [defaults synchronize];
@@ -1210,6 +1245,9 @@ static BOOL ProcessUsesExecutable(pid_t pid, NSString *expectedPath) {
   NSMutableArray *result = [NSMutableArray array];
 
   for (const Display &d : displays) {
+    if (d.screen == kCGNullDirectDisplay)
+      continue;
+
     DisplayObjc *obj =
         [[DisplayObjc alloc] initWithDaemon:d.daemon
                                      screen:d.screen

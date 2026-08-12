@@ -1,95 +1,104 @@
+# AIWallpaperEngineMac
 
-![Status: Paused](https://img.shields.io/badge/Project_Status-Paused_Until_End_Of_Aug_2026-red?style=for-the-badge)
-
-# LiveWallpaper App for MacOS 14+
+Give your Mac desktop a little more character.
 
 **Languages:** English | [简体中文](README.zh-Hans.md)
 
-![Roller](./asset/livewall.png)
+AIWallpaperEngineMac is a native macOS wallpaper app for people who want their
+desktop to feel a little more like their own. Pick a favorite video, photo,
+GIF, Live Photo, web scene, or live effect, then let it quietly stay with you
+while you work, study, or take a break.
 
-This is an open-source live wallpaper application for MacOS 14+
+It is built around the practical details that matter: separate wallpapers for
+multiple displays, stable playback, sensible battery behavior, and controls
+that do not get in your way. Image generation is an optional tool—not the
+whole story.
 
-## Install using brew
+## Highlights
 
-Run this on terminal `brew tap thusvill/livewallpaper && brew install --cask livewallpaper`
+- Per-display wallpaper sessions, including display hot-plug recovery.
+- MP4/MOV video, GIF, Live Photo, and static-image renderers.
+- Web wallpaper renderer and configurable online wallpaper catalogs.
+- Metal shader and particle wallpaper foundation.
+- Performance controls for battery, low-power, fullscreen, and target FPS modes.
+- Optional local and system-audio analysis for music-reactive visual effects.
+- Optional OpenAI and Volcengine image-generation providers; API keys stay in the macOS Keychain.
 
-## Installation(Compile from source)
-- macOS 14+
-- git
-- Xcode
-- Cmake
-  
-Run this: `git clone --single-branch --branch objectiveC https://github.com/thusvill/LiveWallpaperMacOS.git && cd LiveWallpaperMacOS && mkdir -p build && cd build && cmake .. && make -j$(sysctl -n hw.ncpu)`
+## What it can do
 
+- **Video:** MP4 and MOV playback with stable looping.
+- **Images:** local images, GIF, and Live Photos.
+- **Web:** local or remote web wallpapers.
+- **Effects:** Metal shaders, particle scenes, and music-reactive effects.
+- **Online catalogs:** optional video and image wallpaper sources.
+- **Generation:** optional prompt-based wallpaper generation through a provider configured by the user.
 
-## Guide for DMG Installation
+## Help build it
 
-> [!IMPORTANT]
-> ## Fix “LiveWallpaper.app” is corrupted and cannot be opened. It is recommended that you move the object to the recycle bin.
-> After you install the app in Application folder you have to bypass Gatekeeper to run this since I don't want to pay apple for opensource apps.
-> 
-> This will solve the occupation issue
-> 
-> `xattr -d com.apple.quarantine /Applications/LiveWallpaper.app` 
+This project is not meant to be finished by one person alone. If you enjoy
+macOS, visual design, shaders, media playback, or simply have a good idea for
+how a desktop wallpaper app should feel, you are welcome here.
 
-Click the "OpenInFinder" button and it'll open a folder, you can place wallpapers in it.
+- Share bugs, ideas, and wallpaper-use cases through GitHub Issues.
+- Improve the interface, translations, performance, or compatibility through Pull Requests.
+- Build and share wallpaper packages, shaders, and catalog providers.
+- Help shape AIWallpaperEngineMac into a complete, community-made macOS wallpaper engine.
 
-> [!NOTE]
-> No dots should be contained in the file name, except the dot for extension!
-> 
-> ## Eg:
-> 
->  - file.1920x1080.mp4 ❌ ('.'s > 1)
-> 
->  - file-1920x1080.mp4 ✅ ('.'s = 1)
+Please keep contributions respectful, original or properly licensed, and
+friendly to users' privacy.
 
-> [!NOTE]
-> Currently support for `.mp4` and `.mov`
+## Requirements
 
-> https://github.com/user-attachments/assets/3d82e07d-b6b9-4a7d-b6de-5dd05dff3128
+- macOS 14 or later
+- Xcode 15 or later
+- Apple Silicon is recommended for Metal and video performance.
 
-## Bug reports
+## Build from source
 
-Post bugs with result of following command.
+1. Clone this repository.
+2. Open the included Xcode project.
+3. Select the application scheme and run it on **My Mac**.
 
- `/Applications/LiveWallpaper.app/Contents/MacOS/LiveWallpaper` 
+The application product is `AIWallpaperEngineMac.app`. Some internal project
+and target identifiers retain their upstream names for source compatibility;
+the product name and user-facing interface use AIWallpaperEngineMac. The
+project includes an Objective-C++ compatibility layer while the new UI and
+engine modules are implemented in Swift and SwiftUI.
 
-## Gallery
+## Permissions
 
-> ![Application](./asset/application.png)
+Depending on the wallpaper and enabled effects, macOS may request:
 
-> ## This is a static image, currently LiveWallpaper doesn't support videos on the lock screen.
-> ![lockscreen](./asset/lockscreen.png)
+- **Screen Recording** for system-audio reactive effects.
+- **Accessibility** only for optional advanced desktop interaction.
 
-> ![settings](./asset/settings.png)
+The normal wallpaper mode does not intercept desktop icon clicks.
 
-> https://github.com/user-attachments/assets/36fb169e-b7cc-4489-9459-dab07c8dd2c6
+## Architecture
 
+```
+UI (SwiftUI)
+  -> Core (WallpaperEngine / WallpaperSession / Settings)
+  -> Display (DisplayManager / ScreenController)
+  -> Renderer (Video / Image / GIF / Live Photo / Web / Metal / Particle)
+  -> macOS APIs (AppKit, AVFoundation, Metal, ScreenCaptureKit)
+```
 
+## License and notices
 
+This repository is licensed under the GNU General Public License v3.0 or later. See [LICENSE](LICENSE).
 
-> # Performance
-> ![p1](./asset/preformance1.png)
-> ![p2](./asset/preformance2.png)
-> ![p3](./asset/preformance3.png)
+The project is derived from GPL-licensed upstream work and keeps the required license and attribution obligations. Third-party reference and component notices are in [ThirdPartyNotices.md](ThirdPartyNotices.md).
 
+## Support the project
 
-<!-- ## Gallery
-> <img width="185" height="134" alt="Screenshot 2025-11-30 at 1 52 01 PM" src="https://github.com/user-attachments/assets/0c91fb29-e729-485b-8f93-7080aed68881" />
-> <img width="185" height="134" alt="Screenshot 2025-11-30 at 1 51 53 PM" src="https://github.com/user-attachments/assets/7848d2fd-8cc4-4271-a4c0-2868bdf00422" />
- 
+If the app makes your desktop feel more like yours, WeChat appreciation can
+support continued development. Thank you for helping keep the project moving.
 
-
-
-> ![Screenshot 2025-05-15 at 6 46 35 AM](https://github.com/user-attachments/assets/167b0c08-454f-4d53-9e65-8798aed6459f)
-
-> <img width="2560" height="1600" alt="Screenshot 2025-11-30 at 1 52 34 PM" src="https://github.com/user-attachments/assets/79a24ed8-cc5a-4246-87d0-9c93e04766f2" />
-
-> <img width="2560" height="1600" alt="Screenshot 2025-11-30 at 1 54 35 PM" src="https://github.com/user-attachments/assets/10466b02-77d5-4814-9fb7-a865e62a41ba" />
-
- 
-
-> https://github.com/user-attachments/assets/748c7078-1f99-4182-876f-08aa59d2bc63 -->
- 
-
-For licensing details, see [LICENSE](LICENSE).
+<table>
+  <tr>
+    <td align="center"><strong>WeChat</strong><br><img src="asset/support/wechat-appreciation.jpg" width="220" alt="WeChat appreciation QR code"></td>
+    <td align="center"><strong>Alipay</strong><br><img src="asset/support/alipay-appreciation.jpg" width="220" alt="Alipay appreciation QR code"></td>
+    <td align="center"><strong>PayPal</strong><br><img src="asset/support/paypal-appreciation.jpg" width="220" alt="PayPal appreciation QR code"></td>
+  </tr>
+</table>

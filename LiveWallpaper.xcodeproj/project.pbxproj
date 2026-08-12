@@ -18,7 +18,7 @@
 		04E055F42EEA8D6800F90A44 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 04E055472EEA795F00F90A44 /* CoreGraphics.framework */; };
 		04E055F52EEA8D7100F90A44 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 04E055DE2EEA8C2600F90A44 /* QuartzCore.framework */; };
 		04E055F72EEA8DDA00F90A44 /* wallpaperdaemon in CopyFiles */ = {isa = PBXBuildFile; fileRef = 04E055E82EEA8D2C00F90A44 /* wallpaperdaemon */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		04E056FF2EEAB3EE00F90A44 /* LiveWallpaperApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E056672EEAB3EE00F90A44 /* LiveWallpaperApp.swift */; };
+		04E056FF2EEAB3EE00F90A44 /* AIWallpaperEngineMacApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E056672EEAB3EE00F90A44 /* AIWallpaperEngineMacApp.swift */; };
 		04E0570B2EEAB3EE00F90A44 /* WallpaperEngine.mm in Sources */ = {isa = PBXBuildFile; fileRef = 04E056F02EEAB3EE00F90A44 /* WallpaperEngine.mm */; };
 		04E057192EEAB3EE00F90A44 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E0565F2EEAB3EE00F90A44 /* ContentView.swift */; };
 		04E0571C2EEAB3EE00F90A44 /* SaveSystem.mm in Sources */ = {isa = PBXBuildFile; fileRef = 04E0566C2EEAB3EE00F90A44 /* SaveSystem.mm */; };
@@ -59,11 +59,37 @@
 		A10000010000000000000001 /* WallpaperEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000110000000000000001 /* WallpaperEngine.swift */; };
 		A10000020000000000000001 /* WallpaperSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000120000000000000001 /* WallpaperSession.swift */; };
 		A10000030000000000000001 /* WallpaperState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000130000000000000001 /* WallpaperState.swift */; };
+		F60000010000000000000001 /* PerformanceSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F60000110000000000000001 /* PerformanceSettings.swift */; };
+		FA1000010000000000000001 /* MusicEffectEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA1000110000000000000001 /* MusicEffectEngine.swift */; };
+		F80000010000000000000001 /* SystemWallpaperSynchronizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F80000110000000000000001 /* SystemWallpaperSynchronizer.swift */; };
+		F70000010000000000000001 /* MarketplaceModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F70000110000000000000001 /* MarketplaceModels.swift */; };
+		F70000020000000000000001 /* WallpaperCatalogClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F70000120000000000000001 /* WallpaperCatalogClient.swift */; };
+		F70000030000000000000001 /* WallpaperDownloadManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F70000130000000000000001 /* WallpaperDownloadManager.swift */; };
+		F70000040000000000000001 /* MarketplaceViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F70000140000000000000001 /* MarketplaceViewModel.swift */; };
+		F70000050000000000000001 /* MarketplaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F70000150000000000000001 /* MarketplaceView.swift */; };
+		F70000060000000000000001 /* WallpaperCatalogProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F70000160000000000000001 /* WallpaperCatalogProvider.swift */; };
+		G90000010000000000000001 /* AIWallpaperGeneration.swift in Sources */ = {isa = PBXBuildFile; fileRef = G90000110000000000000001 /* AIWallpaperGeneration.swift */; };
+		G90000020000000000000001 /* AIWallpaperView.swift in Sources */ = {isa = PBXBuildFile; fileRef = G90000120000000000000001 /* AIWallpaperView.swift */; };
+		G90000030000000000000001 /* OpenAIWallpaperProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = G90000130000000000000001 /* OpenAIWallpaperProvider.swift */; };
+		G90000040000000000000001 /* VolcengineWallpaperProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = G90000140000000000000001 /* VolcengineWallpaperProvider.swift */; };
 		A10000040000000000000001 /* DisplayManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000140000000000000001 /* DisplayManager.swift */; };
 		A10000050000000000000001 /* ScreenController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000150000000000000001 /* ScreenController.swift */; };
 		A10000060000000000000001 /* RendererProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000160000000000000001 /* RendererProtocol.swift */; };
 		A10000070000000000000001 /* RendererManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000170000000000000001 /* RendererManager.swift */; };
 		A10000080000000000000001 /* VideoRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000180000000000000001 /* VideoRenderer.swift */; };
+		C30000010000000000000001 /* MetalRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C30000110000000000000001 /* MetalRenderer.swift */; };
+		C30000020000000000000001 /* WallpaperShaders.metal in Resources */ = {isa = PBXBuildFile; fileRef = C30000120000000000000001 /* WallpaperShaders.metal */; };
+		D40000010000000000000001 /* GIFRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D40000110000000000000001 /* GIFRenderer.swift */; };
+		D40000020000000000000001 /* LivePhotoRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D40000120000000000000001 /* LivePhotoRenderer.swift */; };
+		D40000030000000000000001 /* ImageRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D40000130000000000000001 /* ImageRenderer.swift */; };
+		E50000010000000000000001 /* ParticleSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = E50000110000000000000001 /* ParticleSettings.swift */; };
+		E50000020000000000000001 /* GestureInputRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E50000120000000000000001 /* GestureInputRouter.swift */; };
+		E50000030000000000000001 /* ParticleRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E50000130000000000000001 /* ParticleRenderer.swift */; };
+		E50000040000000000000001 /* ParticleShaders.metal in Resources */ = {isa = PBXBuildFile; fileRef = E50000140000000000000001 /* ParticleShaders.metal */; };
+		E50000050000000000000001 /* ThirdPartyNotices.md in Resources */ = {isa = PBXBuildFile; fileRef = E50000150000000000000001 /* ThirdPartyNotices.md */; };
+		F90000010000000000000001 /* WebRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F90000110000000000000001 /* WebRenderer.swift */; };
+		F90000020000000000000001 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F90000120000000000000001 /* WebKit.framework */; };
+		FA0000010000000000000001 /* TouchBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0000110000000000000001 /* TouchBarController.swift */; };
 		A10000090000000000000001 /* VideoItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000190000000000000001 /* VideoItem.swift */; };
 		A100000A0000000000000001 /* WallpaperViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001A0000000000000001 /* WallpaperViewModel.swift */; };
 		B20000010000000000000001 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = B20000100000000000000001 /* Localizable.strings */; };
@@ -90,7 +116,7 @@
 
 /* Begin PBXFileReference section */
 		048ABDDC2F4C1652001393B0 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = asset/AppIcon.icon; sourceTree = "<group>"; };
-		04E0070A2EEA738C00F90A44 /* LiveWallpaper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LiveWallpaper.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		04E0070A2EEA738C00F90A44 /* AIWallpaperEngineMac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AIWallpaperEngineMac.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		04E055412EEA794C00F90A44 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		04E055432EEA795200F90A44 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 		04E055452EEA795900F90A44 /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
@@ -103,11 +129,28 @@
 		04E0565F2EEAB3EE00F90A44 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = SOURCE_ROOT; };
 		04E056612EEAB3EE00F90A44 /* DisplayManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DisplayManager.h; sourceTree = SOURCE_ROOT; };
 		04E056662EEAB3EE00F90A44 /* LiveWallpaper-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "LiveWallpaper-Bridging-Header.h"; sourceTree = SOURCE_ROOT; };
-		04E056672EEAB3EE00F90A44 /* LiveWallpaperApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveWallpaperApp.swift; sourceTree = SOURCE_ROOT; };
+		04E056672EEAB3EE00F90A44 /* AIWallpaperEngineMacApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIWallpaperEngineMacApp.swift; sourceTree = SOURCE_ROOT; };
 		04E0566B2EEAB3EE00F90A44 /* SaveSystem.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SaveSystem.h; sourceTree = SOURCE_ROOT; };
 		04E0566C2EEAB3EE00F90A44 /* SaveSystem.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = SaveSystem.mm; sourceTree = SOURCE_ROOT; };
 		04E056EF2EEAB3EE00F90A44 /* WallpaperEngine.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WallpaperEngine.h; sourceTree = SOURCE_ROOT; };
 		04E056F02EEAB3EE00F90A44 /* WallpaperEngine.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = WallpaperEngine.mm; sourceTree = SOURCE_ROOT; };
+		F60000110000000000000001 /* PerformanceSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformanceSettings.swift; sourceTree = "<group>"; };
+		FA1000110000000000000001 /* MusicEffectEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicEffectEngine.swift; sourceTree = "<group>"; };
+		F80000110000000000000001 /* SystemWallpaperSynchronizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemWallpaperSynchronizer.swift; sourceTree = "<group>"; };
+		F70000110000000000000001 /* MarketplaceModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketplaceModels.swift; sourceTree = "<group>"; };
+		F70000120000000000000001 /* WallpaperCatalogClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpaperCatalogClient.swift; sourceTree = "<group>"; };
+		F70000130000000000000001 /* WallpaperDownloadManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpaperDownloadManager.swift; sourceTree = "<group>"; };
+		F70000140000000000000001 /* MarketplaceViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketplaceViewModel.swift; sourceTree = "<group>"; };
+		F70000150000000000000001 /* MarketplaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketplaceView.swift; sourceTree = "<group>"; };
+		F70000160000000000000001 /* WallpaperCatalogProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpaperCatalogProvider.swift; sourceTree = "<group>"; };
+		F90000110000000000000001 /* WebRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebRenderer.swift; sourceTree = "<group>"; };
+		F90000120000000000000001 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		FA0000110000000000000001 /* TouchBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TouchBarController.swift; sourceTree = "<group>"; };
+		G90000110000000000000001 /* AIWallpaperGeneration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIWallpaperGeneration.swift; sourceTree = "<group>"; };
+		G90000120000000000000001 /* AIWallpaperView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIWallpaperView.swift; sourceTree = "<group>"; };
+		G90000130000000000000001 /* OpenAIWallpaperProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAIWallpaperProvider.swift; sourceTree = "<group>"; };
+		G90000140000000000000001 /* VolcengineWallpaperProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolcengineWallpaperProvider.swift; sourceTree = "<group>"; };
+		D40000130000000000000001 /* ImageRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageRenderer.swift; sourceTree = "<group>"; };
 		04E057392EEAB43200F90A44 /* dragonbox.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dragonbox.h; sourceTree = "<group>"; };
 		04E0573A2EEAB43200F90A44 /* graphbuilder.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = graphbuilder.cpp; sourceTree = "<group>"; };
 		04E0573B2EEAB43200F90A44 /* graphbuilderadapter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = graphbuilderadapter.h; sourceTree = "<group>"; };
@@ -290,6 +333,15 @@
 		A10000160000000000000001 /* RendererProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RendererProtocol.swift; sourceTree = "<group>"; };
 		A10000170000000000000001 /* RendererManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RendererManager.swift; sourceTree = "<group>"; };
 		A10000180000000000000001 /* VideoRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoRenderer.swift; sourceTree = "<group>"; };
+		C30000110000000000000001 /* MetalRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalRenderer.swift; sourceTree = "<group>"; };
+		C30000120000000000000001 /* WallpaperShaders.metal */ = {isa = PBXFileReference; lastKnownFileType = text; path = WallpaperShaders.metal; sourceTree = "<group>"; };
+		D40000110000000000000001 /* GIFRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GIFRenderer.swift; sourceTree = "<group>"; };
+		D40000120000000000000001 /* LivePhotoRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LivePhotoRenderer.swift; sourceTree = "<group>"; };
+		E50000110000000000000001 /* ParticleSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParticleSettings.swift; sourceTree = "<group>"; };
+		E50000120000000000000001 /* GestureInputRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureInputRouter.swift; sourceTree = "<group>"; };
+		E50000130000000000000001 /* ParticleRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParticleRenderer.swift; sourceTree = "<group>"; };
+		E50000140000000000000001 /* ParticleShaders.metal */ = {isa = PBXFileReference; lastKnownFileType = text; path = ParticleShaders.metal; sourceTree = "<group>"; };
+		E50000150000000000000001 /* ThirdPartyNotices.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ThirdPartyNotices.md; sourceTree = SOURCE_ROOT; };
 		A10000190000000000000001 /* VideoItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoItem.swift; sourceTree = "<group>"; };
 		A100001A0000000000000001 /* WallpaperViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpaperViewModel.swift; sourceTree = "<group>"; };
 		B20000110000000000000001 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = SOURCE_ROOT; };
@@ -308,6 +360,7 @@
 		04E007072EEA738C00F90A44 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
+				F90000020000000000000001 /* WebKit.framework in Frameworks */,
 				04E055482EEA795F00F90A44 /* CoreGraphics.framework in Frameworks */,
 				04E055462EEA795900F90A44 /* CoreVideo.framework in Frameworks */,
 				04E055442EEA795200F90A44 /* CoreMedia.framework in Frameworks */,
@@ -341,7 +394,7 @@
 		04E0070B2EEA738C00F90A44 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				04E0070A2EEA738C00F90A44 /* LiveWallpaper.app */,
+				04E0070A2EEA738C00F90A44 /* AIWallpaperEngineMac.app */,
 				04E055E82EEA8D2C00F90A44 /* wallpaperdaemon */,
 			);
 			name = Products;
@@ -350,6 +403,7 @@
 		04E054BD2EEA76F600F90A44 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				F90000120000000000000001 /* WebKit.framework */,
 				04E055E22EEA8CB600F90A44 /* Cocoa.framework */,
 				04E055E02EEA8C2E00F90A44 /* IOKit.framework */,
 				04E055DE2EEA8C2600F90A44 /* QuartzCore.framework */,
@@ -369,12 +423,15 @@
 				A10000210000000000000001 /* Core */,
 				A10000220000000000000001 /* Display */,
 				A10000230000000000000001 /* Renderer */,
+				F70000210000000000000001 /* Marketplace */,
+				G90000210000000000000001 /* AI */,
 				A10000240000000000000001 /* UI */,
 				04E0565D2EEAB3EE00F90A44 /* Assets.xcassets */,
 				04E0565F2EEAB3EE00F90A44 /* ContentView.swift */,
 				04E056612EEAB3EE00F90A44 /* DisplayManager.h */,
 				04E056662EEAB3EE00F90A44 /* LiveWallpaper-Bridging-Header.h */,
-				04E056672EEAB3EE00F90A44 /* LiveWallpaperApp.swift */,
+				04E056672EEAB3EE00F90A44 /* AIWallpaperEngineMacApp.swift */,
+				E50000150000000000000001 /* ThirdPartyNotices.md */,
 				04E0566B2EEAB3EE00F90A44 /* SaveSystem.h */,
 				04E0566C2EEAB3EE00F90A44 /* SaveSystem.mm */,
 				04E056EF2EEAB3EE00F90A44 /* WallpaperEngine.h */,
@@ -392,6 +449,9 @@
 				A10000110000000000000001 /* WallpaperEngine.swift */,
 				A10000120000000000000001 /* WallpaperSession.swift */,
 				A10000130000000000000001 /* WallpaperState.swift */,
+				F60000110000000000000001 /* PerformanceSettings.swift */,
+				FA1000110000000000000001 /* MusicEffectEngine.swift */,
+				F80000110000000000000001 /* SystemWallpaperSynchronizer.swift */,
 			);
 			path = Core;
 			sourceTree = SOURCE_ROOT;
@@ -411,13 +471,48 @@
 				A10000160000000000000001 /* RendererProtocol.swift */,
 				A10000170000000000000001 /* RendererManager.swift */,
 				A10000180000000000000001 /* VideoRenderer.swift */,
+				F90000110000000000000001 /* WebRenderer.swift */,
+				D40000130000000000000001 /* ImageRenderer.swift */,
+				D40000110000000000000001 /* GIFRenderer.swift */,
+				D40000120000000000000001 /* LivePhotoRenderer.swift */,
+				E50000110000000000000001 /* ParticleSettings.swift */,
+				E50000120000000000000001 /* GestureInputRouter.swift */,
+				E50000130000000000000001 /* ParticleRenderer.swift */,
+				E50000140000000000000001 /* ParticleShaders.metal */,
+				C30000110000000000000001 /* MetalRenderer.swift */,
+				C30000120000000000000001 /* WallpaperShaders.metal */,
 			);
 			path = Renderer;
+			sourceTree = SOURCE_ROOT;
+		};
+		F70000210000000000000001 /* Marketplace */ = {
+			isa = PBXGroup;
+			children = (
+				F70000110000000000000001 /* MarketplaceModels.swift */,
+				F70000120000000000000001 /* WallpaperCatalogClient.swift */,
+				F70000130000000000000001 /* WallpaperDownloadManager.swift */,
+				F70000140000000000000001 /* MarketplaceViewModel.swift */,
+				F70000160000000000000001 /* WallpaperCatalogProvider.swift */,
+			);
+			path = Marketplace;
+			sourceTree = SOURCE_ROOT;
+		};
+		G90000210000000000000001 /* AI */ = {
+			isa = PBXGroup;
+			children = (
+				G90000110000000000000001 /* AIWallpaperGeneration.swift */,
+				G90000130000000000000001 /* OpenAIWallpaperProvider.swift */,
+				G90000140000000000000001 /* VolcengineWallpaperProvider.swift */,
+			);
+			path = AI;
 			sourceTree = SOURCE_ROOT;
 		};
 		A10000240000000000000001 /* UI */ = {
 			isa = PBXGroup;
 			children = (
+				FA0000110000000000000001 /* TouchBarController.swift */,
+				F70000150000000000000001 /* MarketplaceView.swift */,
+				G90000120000000000000001 /* AIWallpaperView.swift */,
 				A10000250000000000000001 /* Models */,
 				A10000260000000000000001 /* ViewModels */,
 			);
@@ -723,8 +818,8 @@
 			buildRules = (
 			);
 			name = LiveWallpaper;
-			productName = LiveWallpaper;
-			productReference = 04E0070A2EEA738C00F90A44 /* LiveWallpaper.app */;
+			productName = AIWallpaperEngineMac;
+			productReference = 04E0070A2EEA738C00F90A44 /* AIWallpaperEngineMac.app */;
 			productType = "com.apple.product-type.application";
 		};
 		04E055E72EEA8D2C00F90A44 /* wallpaperdaemon */ = {
@@ -789,6 +884,9 @@
 			isa = PBXResourcesBuildPhase;
 			files = (
 				B20000010000000000000001 /* Localizable.strings in Resources */,
+				C30000020000000000000001 /* WallpaperShaders.metal in Resources */,
+				E50000040000000000000001 /* ParticleShaders.metal in Resources */,
+				E50000050000000000000001 /* ThirdPartyNotices.md in Resources */,
 				04E057382EEAB3EE00F90A44 /* Assets.xcassets in Resources */,
 				048ABDDD2F4C1652001393B0 /* AppIcon.icon in Resources */,
 			);
@@ -802,13 +900,35 @@
 				A10000010000000000000001 /* WallpaperEngine.swift in Sources */,
 				A10000020000000000000001 /* WallpaperSession.swift in Sources */,
 				A10000030000000000000001 /* WallpaperState.swift in Sources */,
+				F60000010000000000000001 /* PerformanceSettings.swift in Sources */,
+				FA1000010000000000000001 /* MusicEffectEngine.swift in Sources */,
+				F80000010000000000000001 /* SystemWallpaperSynchronizer.swift in Sources */,
+				F70000010000000000000001 /* MarketplaceModels.swift in Sources */,
+				F70000020000000000000001 /* WallpaperCatalogClient.swift in Sources */,
+				F70000030000000000000001 /* WallpaperDownloadManager.swift in Sources */,
+				F70000040000000000000001 /* MarketplaceViewModel.swift in Sources */,
+				F70000060000000000000001 /* WallpaperCatalogProvider.swift in Sources */,
+				F70000050000000000000001 /* MarketplaceView.swift in Sources */,
+				G90000010000000000000001 /* AIWallpaperGeneration.swift in Sources */,
+				G90000020000000000000001 /* AIWallpaperView.swift in Sources */,
+				G90000030000000000000001 /* OpenAIWallpaperProvider.swift in Sources */,
+				G90000040000000000000001 /* VolcengineWallpaperProvider.swift in Sources */,
 				A10000040000000000000001 /* DisplayManager.swift in Sources */,
 				A10000050000000000000001 /* ScreenController.swift in Sources */,
 				A10000060000000000000001 /* RendererProtocol.swift in Sources */,
 				A10000070000000000000001 /* RendererManager.swift in Sources */,
 				A10000080000000000000001 /* VideoRenderer.swift in Sources */,
+				F90000010000000000000001 /* WebRenderer.swift in Sources */,
+				D40000030000000000000001 /* ImageRenderer.swift in Sources */,
+				D40000010000000000000001 /* GIFRenderer.swift in Sources */,
+				D40000020000000000000001 /* LivePhotoRenderer.swift in Sources */,
+				E50000010000000000000001 /* ParticleSettings.swift in Sources */,
+				E50000020000000000000001 /* GestureInputRouter.swift in Sources */,
+				E50000030000000000000001 /* ParticleRenderer.swift in Sources */,
+				C30000010000000000000001 /* MetalRenderer.swift in Sources */,
 				A10000090000000000000001 /* VideoItem.swift in Sources */,
 				A100000A0000000000000001 /* WallpaperViewModel.swift in Sources */,
+				FA0000010000000000000001 /* TouchBarController.swift in Sources */,
 				04E057742EEAB43200F90A44 /* emitterstate.cpp in Sources */,
 				04E057752EEAB43200F90A44 /* nodebuilder.cpp in Sources */,
 				04E057762EEAB43200F90A44 /* ostream_wrapper.cpp in Sources */,
@@ -841,7 +961,7 @@
 				04E057912EEAB43200F90A44 /* null.cpp in Sources */,
 				04E057922EEAB43200F90A44 /* scanner.cpp in Sources */,
 				04E057932EEAB43200F90A44 /* directives.cpp in Sources */,
-				04E056FF2EEAB3EE00F90A44 /* LiveWallpaperApp.swift in Sources */,
+				04E056FF2EEAB3EE00F90A44 /* AIWallpaperEngineMacApp.swift in Sources */,
 				04F816E02EEBE3FB00CFB473 /* DisplayObjc.mm in Sources */,
 				04E0570B2EEAB3EE00F90A44 /* WallpaperEngine.mm in Sources */,
 				04E057192EEAB3EE00F90A44 /* ContentView.swift in Sources */,
@@ -1006,7 +1126,7 @@
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				SYSTEM_HEADER_SEARCH_PATHS = "$(SRCROOT)/vendor/yaml-cpp/include";
-				INFOPLIST_KEY_CFBundleDisplayName = LiveWallpaper;
+				INFOPLIST_KEY_CFBundleDisplayName = AIWallpaperEngineMac;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1018,10 +1138,10 @@
 					"$(PROJECT_DIR)",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
-				MARKETING_VERSION = 2.3;
+				MARKETING_VERSION = 2.7.2;
 				ONLY_ACTIVE_ARCH = NO;
-				PRODUCT_BUNDLE_IDENTIFIER = com.thusvill.LiveWallpaper;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.aiwallpaperengine.mac;
+				PRODUCT_NAME = AIWallpaperEngineMac;
 				SUPPORTED_PLATFORMS = macosx;
 				REGISTER_APP_GROUPS = YES;
 				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = NO;
@@ -1059,7 +1179,7 @@
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				SYSTEM_HEADER_SEARCH_PATHS = "$(SRCROOT)/vendor/yaml-cpp/include";
-				INFOPLIST_KEY_CFBundleDisplayName = LiveWallpaper;
+				INFOPLIST_KEY_CFBundleDisplayName = AIWallpaperEngineMac;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1071,10 +1191,10 @@
 					"$(PROJECT_DIR)",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
-				MARKETING_VERSION = 2.3;
+				MARKETING_VERSION = 2.7.2;
 				ONLY_ACTIVE_ARCH = NO;
-				PRODUCT_BUNDLE_IDENTIFIER = com.thusvill.LiveWallpaper;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.aiwallpaperengine.mac;
+				PRODUCT_NAME = AIWallpaperEngineMac;
 				SUPPORTED_PLATFORMS = macosx;
 				REGISTER_APP_GROUPS = YES;
 				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = NO;
@@ -1109,8 +1229,8 @@
 				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
-				PRODUCT_BUNDLE_IDENTIFIER = com.thusvill.LiveWallpaper;
-				"PRODUCT_BUNDLE_IDENTIFIER[sdk=macosx*]" = com.thusvill.Livewallpaper;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aiwallpaperengine.mac.wallpaperdaemon;
+				"PRODUCT_BUNDLE_IDENTIFIER[sdk=macosx*]" = com.aiwallpaperengine.mac.wallpaperdaemon;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = macosx;
 				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = NO;
@@ -1137,8 +1257,8 @@
 				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
-				PRODUCT_BUNDLE_IDENTIFIER = com.thusvill.LiveWallpaper;
-				"PRODUCT_BUNDLE_IDENTIFIER[sdk=macosx*]" = com.thusvill.Livewallpaper;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aiwallpaperengine.mac.wallpaperdaemon;
+				"PRODUCT_BUNDLE_IDENTIFIER[sdk=macosx*]" = com.aiwallpaperengine.mac.wallpaperdaemon;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = macosx;
 				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = NO;

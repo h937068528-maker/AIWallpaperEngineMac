@@ -4,4 +4,3 @@
 PRODUCT_BUNDLE_IDENTIFIER = com.aiwallpaperengine.mac
 INFOPLIST_KEY_CFBundleDisplayName = AIWallpaperEngineMac
 INFOPLIST_KEY_CFBundleName = AIWallpaperEngineMac
-
